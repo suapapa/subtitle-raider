@@ -15,6 +15,11 @@ func main() {
 	}
 	b := srt.UnmarshalFile(os.Args[1])
 
+	screen := NewSdlContext(640, 480)
+	defer screen.Release()
+
+	screen.Clear()
+
 	tickStepMs := time.Duration(100)
 	tkr := time.NewTicker(tickStepMs * time.Millisecond)
 	defer tkr.Stop()
@@ -31,18 +36,17 @@ func main() {
 			nextScript = &b[0]
 			continue
 		}
-
-		fmt.Printf("\r%d\t", currMs)
+		/* fmt.Printf("\r%d\t", currMs) */
 
 		if currScript != nil && time.Duration(currScript.EndMs) <= currMs {
 			currScript = nil
 		}
 
 		if currScript != nil {
-			fmt.Print(currScript.Text)
+			screen.DisplayScript(currScript)
 			/* continue */
 		} else {
-			fmt.Print("                           ")
+			screen.Clear()
 		}
 
 		if nextScript == nil {
