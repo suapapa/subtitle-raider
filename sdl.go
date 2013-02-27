@@ -5,6 +5,7 @@ import (
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/ttf"
 	"log"
+	"time"
 )
 
 const (
@@ -17,8 +18,8 @@ var (
 )
 
 type sdlCtx struct {
-	surface *sdl.Surface
-	font    *ttf.Font
+	surface    *sdl.Surface
+	font       *ttf.Font
 	currScript *srt.Script
 }
 
@@ -51,6 +52,7 @@ func NewSdlContext(w, h int) *sdlCtx {
 		log.Fatal("failed to open font:", sdl.GetError())
 		return nil
 	}
+	/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
 
 	title := "Subtitle Player"
 	icon := "" // path/to/icon
@@ -98,8 +100,11 @@ func (c *sdlCtx) DisplayScript(script *srt.Script) {
 	if c.currScript == script {
 		return
 	}
-	/* font.SetStyle(ttf.STYLE_UNDERLINE) */
-	log.Println("display", script.Text)
+	c.currScript = script
+
+	durationMs := script.EndMs - script.StartMs
+	log.Printf("display(%08d) %s", durationMs, script.Text)
+	timer := time.NewTimer(time.Duration(durationMs) * time.Millisecond)
 
 	w, h, err := c.font.SizeUTF8(script.Text)
 	if err != 0 {
@@ -109,7 +114,10 @@ func (c *sdlCtx) DisplayScript(script *srt.Script) {
 	glypse := ttf.RenderUTF8_Blended(c.font, script.Text, TEXT_COLOR)
 	c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, glypse, nil)
 	c.surface.Flip()
-	c.currScript = script
+
+	<-timer.C
+	c.surface.FillRect(nil, 0 /* BG_COLOR */)
+	c.surface.Flip()
 }
 
 func (c *sdlCtx) Release() {

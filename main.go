@@ -38,15 +38,9 @@ func main() {
 		}
 		/* fmt.Printf("\r%d\t", currMs) */
 
-		if currScript != nil && time.Duration(currScript.EndMs) <= currMs {
-			currScript = nil
-		}
-
 		if currScript != nil {
 			screen.DisplayScript(currScript)
 			/* continue */
-		} else {
-			screen.Clear()
 		}
 
 		if nextScript == nil {
