@@ -7,6 +7,7 @@ import (
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/ttf"
 	"log"
+	"sort"
 	"strings"
 	"time"
 )
@@ -224,16 +225,46 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 	offsetY := 10
 
 	for _, line := range strings.Split(script.Text, "\n") {
-		w, _, err := c.font.SizeUTF8(line)
-		if err != 0 {
-			log.Fatal("Failed to get size of the font")
-		}
-		offsetX = (c.w - w) / 2
+		runeLine := []rune(line)
+		runeLineLen := len(runeLine)
+		runeLineStart := 0
 
-		glypse := ttf.RenderUTF8_Blended(c.font, line, TEXT_COLOR)
-		lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
-		c.surface.Blit(&lt, glypse, nil)
-		offsetY += c.lineHeight
+		for runeLineStart != runeLineLen {
+			/* log.Println("start =", runeLineStart, "len =", runeLineLen) */
+			runeSubLine := runeLine[runeLineStart:]
+			i := sort.Search(len(runeSubLine), func(i int) bool {
+				w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
+				return (w - 20) >= c.w
+			})
+			/* log.Println("runeSubLine=", string(runeSubLine)) */
+
+			if i != len(runeSubLine) && i > 1 {
+				i -= 1
+			}
+			if i > runeLineLen {
+				i = runeLineLen
+			}
+			/* log.Println("returned i=", i) */
+
+			subline := string(runeLine[runeLineStart : runeLineStart+i])
+			subline = strings.TrimSpace(subline)
+			/* log.Println("subline=", subline) */
+			runeLineStart += i
+			if runeLineStart > runeLineLen {
+				runeLineStart = runeLineLen
+			}
+
+			w, _, err := c.font.SizeUTF8(subline)
+			if err != 0 {
+				log.Fatal("Failed to get size of the font")
+			}
+			offsetX = (c.w - w) / 2
+
+			glypse := ttf.RenderUTF8_Blended(c.font, subline, TEXT_COLOR)
+			lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
+			c.surface.Blit(&lt, glypse, nil)
+			offsetY += c.lineHeight
+		}
 
 	}
 	c.surface.Flip()
