@@ -154,14 +154,12 @@ func (c *sdlCtx) setSurface(w, h int) error {
 func (c *sdlCtx) handelEvent() error {
 	// KeySym to time.Duration mapping
 	kmVias := map[uint32]time.Duration{
-		sdl.K_z:       -100 * time.Microsecond,
-		sdl.K_x:       +100 * time.Microsecond,
-		sdl.K_LEFT:    -1 * time.Second,
-		sdl.K_RIGHT:   +1 * time.Second,
-		sdl.K_DOWN:    -10 * time.Second,
-		sdl.K_UP:      +10 * time.Second,
-		sdl.K_LESS:    -100 * time.Microsecond,
-		sdl.K_GREATER: +100 * time.Microsecond,
+		sdl.K_z:     -100 * time.Microsecond,
+		sdl.K_x:     +100 * time.Microsecond,
+		sdl.K_LEFT:  -1 * time.Second,
+		sdl.K_RIGHT: +1 * time.Second,
+		sdl.K_DOWN:  -10 * time.Second,
+		sdl.K_UP:    +10 * time.Second,
 	}
 
 	kmFontSize := map[uint32]int{
@@ -171,32 +169,51 @@ func (c *sdlCtx) handelEvent() error {
 		sdl.K_KP_MINUS: -5,
 	}
 
+	kmNavScript := map[uint32]int{
+		sdl.K_SPACE: 0,
+		// sdl. : -1,
+		// sdl. : +1,
+	}
+
 	select {
 	case event := <-sdl.Events:
 		/* log.Printf("%#v\n", event) */
 		switch e := event.(type) {
 		case sdl.QuitEvent:
 			return errors.New("sdl: received QuitEvent")
+
+		case sdl.ResizeEvent:
+			if err := c.setSurface(int(e.W), int(e.H)); err != nil {
+				log.Fatal(err)
+			}
+
 		case sdl.KeyboardEvent:
 			// Ignore release key
 			if e.State == 0 {
 				return nil
 			}
-			// log.Printf("Sim:%08x, Mod:%04x, Unicode:%02x, %t\n",
-			// 	e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode,
-			// 	e.Keysym.Unicode)
-			if vias, ok := kmVias[e.Keysym.Sym]; ok {
+
+			keysym := e.Keysym.Sym
+			// tune timestamp
+			if vias, ok := kmVias[keysym]; ok {
 				viasC <- vias
 				break
 			}
-			if vias, ok := kmFontSize[e.Keysym.Sym]; ok {
+			// tune font size
+			if vias, ok := kmFontSize[keysym]; ok {
 				c.changeFontSize(vias)
 				break
 			}
-		case sdl.ResizeEvent:
-			if err := c.setSurface(int(e.W), int(e.H)); err != nil {
-				log.Fatal(err)
+
+			// pause/resume
+			if vias, ok := kmNavScript[keysym]; ok {
+				log.Println("TODO: nav vias=", vias)
+				navC <- vias
+				break
 			}
+			log.Printf("Sim:%08x, Mod:%04x, Unicode:%02x, %t\n",
+				e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode,
+				e.Keysym.Unicode)
 		}
 	}
 	return nil

@@ -9,6 +9,7 @@ import (
 )
 
 var viasC chan time.Duration
+var navC chan int
 
 func main() {
 	if len(os.Args) != 2 {
@@ -26,19 +27,45 @@ func main() {
 	tkr := time.NewTicker(tickDuration)
 	defer tkr.Stop()
 
-	var vias time.Duration
 	viasC = make(chan time.Duration)
+	navC = make(chan int)
 
 	var nextScript *subtitle.Script
 	startTime := time.Now()
 
+	var vias time.Duration
+	var paused bool
+	var currScriptIdx int
 CHAN_LOOP:
 	for {
 		select {
+		case nav := <-navC:
+			currScriptIdx += nav
+			if currScriptIdx < 0 {
+				currScriptIdx = 0
+			} else if currScriptIdx >= len(book) {
+				currScriptIdx = len(book) - 1
+			}
+			if nav == 0 {
+				paused = !paused
+				fmt.Println("paused=", paused)
+			}
+
+			currScript := &book[currScriptIdx]
+			screen.DisplayScript(currScript)
+			if paused == false {
+				vias = time.Since(startTime)
+				vias -= currScript.Start
+			}
+
 		case viasAdd := <-viasC:
 			fmt.Println("vias=", viasAdd)
 			vias += viasAdd
+
 		case <-tkr.C:
+			if paused {
+				continue
+			}
 			currMs := time.Since(startTime)
 			currMs += vias
 
@@ -65,6 +92,7 @@ CHAN_LOOP:
 
 			if nextScript != nil && nextScript.Start <= currMs {
 				screen.DisplayScript(nextScript)
+				currScriptIdx = nextScript.Idx - 1
 				nextScript = nil
 			}
 		}
