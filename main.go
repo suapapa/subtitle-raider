@@ -20,46 +20,43 @@ func main() {
 
 	screen.Clear()
 
-	tickStepMs := time.Duration(100)
-	tkr := time.NewTicker(tickStepMs * time.Millisecond)
+	tickDuration, _ := time.ParseDuration("100ms")
+	tkr := time.NewTicker(tickDuration)
 	defer tkr.Stop()
 
 	var nextScript *srt.Script = &b[0]
-	var currScript *srt.Script = nil
-	var currMs time.Duration
+	startTime := time.Now()
 	/* var viasMs int */
 	for {
 		<-tkr.C
-		currMs += tickStepMs
-		/* currMs += viasMs */
+		currMs := time.Since(startTime)
+		fmt.Println("currMs", currMs)
+
 		if currMs < 0 {
 			nextScript = &b[0]
 			continue
 		}
-		/* fmt.Printf("\r%d\t", currMs) */
-
-		if currScript != nil {
-			screen.DisplayScript(currScript)
-			/* continue */
-		}
 
 		if nextScript == nil {
+			fmt.Println("searching next script...")
 			i := sort.Search(len(b), func(i int) bool {
-				return time.Duration(b[i].StartMs) >= currMs
+				return time.Duration(b[i].StartMs)*time.Millisecond >= currMs
 			})
 
-			if i < len(b) {
-				nextScript = &b[i]
+			if i >= len(b) {
+				lastScript := b[len(b)-1]
+				if time.Duration(lastScript.EndMs) < currMs {
+					fmt.Println("book ended")
+					break
+				}
 			}
+			nextScript = &b[i]
 		}
 
 		if nextScript != nil && time.Duration(nextScript.StartMs) <= currMs {
-			currScript = nextScript
+			screen.DisplayScript(nextScript)
 			nextScript = nil
 		}
 
-		if currScript == nil && nextScript == nil {
-			break
-		}
 	}
 }
