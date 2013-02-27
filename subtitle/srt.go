@@ -1,4 +1,4 @@
-package srt
+package subtitle
 
 import (
 	"bytes"
@@ -8,18 +8,6 @@ import (
 	"strings"
 	"time"
 )
-
-type Script struct {
-	Idx        int
-	Start, End time.Duration
-	Text       string
-}
-
-func (s *Script) Duration() time.Duration {
-	return s.End - s.Start
-}
-
-type Book []Script
 
 func ReadSrt(data []byte) Book {
 	var book Book

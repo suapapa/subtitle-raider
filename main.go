@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./srt"
+	"./subtitle"
 	"fmt"
 	"os"
 	"sort"
@@ -15,7 +15,7 @@ func main() {
 		fmt.Println("Usage:", os.Args[0], "[srt file]")
 		return
 	}
-	b := srt.ReadSrtFile(os.Args[1])
+	book := subtitle.ReadSrtFile(os.Args[1])
 
 	screen := NewSdlContext(640, 480)
 	/* defer screen.Release() */
@@ -29,7 +29,7 @@ func main() {
 	var vias time.Duration
 	viasC = make(chan time.Duration)
 
-	var nextScript *srt.Script
+	var nextScript *subtitle.Script
 	startTime := time.Now()
 
 CHAN_LOOP:
@@ -43,19 +43,19 @@ CHAN_LOOP:
 			currMs += vias
 
 			if currMs < 0 {
-				nextScript = &b[0]
+				nextScript = &book[0]
 				continue
 			}
 
 			if nextScript == nil {
-				i := sort.Search(len(b), func(i int) bool {
-					return b[i].Start >= currMs
+				i := sort.Search(len(book), func(i int) bool {
+					return book[i].Start >= currMs
 				})
 
-				if i < len(b) {
-					nextScript = &b[i]
+				if i < len(book) {
+					nextScript = &book[i]
 				} else {
-					lastScript := b[len(b)-1]
+					lastScript := book[len(book)-1]
 					if lastScript.End < currMs {
 						fmt.Println("book ended")
 						break CHAN_LOOP

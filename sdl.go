@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./srt"
+	"./subtitle"
 	"errors"
 	"fmt"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
@@ -26,7 +26,7 @@ type sdlCtx struct {
 	surface *sdl.Surface
 	w, h    int
 
-	currScript *srt.Script
+	currScript *subtitle.Script
 	font       *ttf.Font
 	lineHeight int
 
@@ -89,7 +89,7 @@ func (c *sdlCtx) Release() {
 	/* log.Printf("sdl Released...") */
 }
 
-func (c *sdlCtx) DisplayScript(script *srt.Script) {
+func (c *sdlCtx) DisplayScript(script *subtitle.Script) {
 	c.displayScript(script, true, false)
 }
 
@@ -201,7 +201,7 @@ func (c *sdlCtx) handelEvent() error {
 	return nil
 }
 
-func (c *sdlCtx) displayScript(script *srt.Script,
+func (c *sdlCtx) displayScript(script *subtitle.Script,
 	andClear bool, forceUpdate bool) {
 	if forceUpdate == false && c.currScript == script {
 		return
