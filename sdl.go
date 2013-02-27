@@ -16,8 +16,9 @@ const (
 )
 
 var (
-	BG_COLOR   = sdl.Color{0, 0, 0, 0}
-	TEXT_COLOR = sdl.Color{255, 255, 255, 0}
+	BG_COLOR    = sdl.Color{0, 0, 0, 0}
+	TEXT_COLOR  = sdl.Color{255, 255, 255, 0}
+	waitFinishC = make(chan bool)
 )
 
 type sdlCtx struct {
@@ -28,7 +29,8 @@ type sdlCtx struct {
 	font       *ttf.Font
 	lineHeight int
 
-	FontSize int
+	fontSize int
+	fontPath string
 }
 
 func NewSdlContext(w, h int) *sdlCtx {
@@ -82,6 +84,8 @@ func (c *sdlCtx) Release() {
 	}
 	ttf.Quit()
 	sdl.Quit()
+
+	/* log.Printf("sdl Released...") */
 }
 
 func (c *sdlCtx) DisplayScript(script *srt.Script) {
@@ -98,17 +102,32 @@ func (c *sdlCtx) Clear() {
 	c.currScript = nil
 }
 
-func (c *sdlCtx) SetFont(path string, size int) error {
+func (c *sdlCtx) setFont(path string, size int) error {
+	if size < 10 {
+		log.Println("set font size to minimum, 10")
+		size = 10
+	}
+
 	c.font = ttf.OpenFont(path, size)
 	if c.font == nil {
 		errMsg := fmt.Sprintf("failed to open font from %s: %s",
 			path, sdl.GetError())
 		return errors.New(errMsg)
 	}
-	c.FontSize = size
+
+	c.fontSize = size
+	c.fontPath = path
 	c.lineHeight = c.font.LineSkip()
 	/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
 	return nil
+}
+
+func (c *sdlCtx) changeFontSize(by int) {
+	if c.font == nil {
+		return
+	}
+	c.setFont(c.fontPath, c.fontSize+by)
+	c.displayScript(c.currScript, false, true)
 }
 
 func (c *sdlCtx) setSurface(w, h int) error {
@@ -129,6 +148,25 @@ func (c *sdlCtx) setSurface(w, h int) error {
 }
 
 func (c *sdlCtx) handelEvent() error {
+	// KeySym to time.Duration mapping
+	kmVias := map[uint32]time.Duration{
+		sdl.K_z:       -100 * time.Microsecond,
+		sdl.K_x:       +100 * time.Microsecond,
+		sdl.K_LEFT:    -1 * time.Second,
+		sdl.K_RIGHT:   +1 * time.Second,
+		sdl.K_DOWN:    -10 * time.Second,
+		sdl.K_UP:      +10 * time.Second,
+		sdl.K_LESS:    -100 * time.Microsecond,
+		sdl.K_GREATER: +100 * time.Microsecond,
+	}
+
+	kmFontSize := map[uint32]int{
+		sdl.K_PLUS:     +5,
+		sdl.K_KP_PLUS:  +5,
+		sdl.K_MINUS:    -5,
+		sdl.K_KP_MINUS: -5,
+	}
+
 	select {
 	case event := <-sdl.Events:
 		/* log.Printf("%#v\n", event) */
@@ -136,8 +174,21 @@ func (c *sdlCtx) handelEvent() error {
 		case sdl.QuitEvent:
 			return errors.New("sdl: received QuitEvent")
 		case sdl.KeyboardEvent:
-			log.Printf("Sim:%08x, Mod:%04x, Unicode:%02x\n",
-				e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode)
+			// Ignore release key
+			if e.State == 0 {
+				return nil
+			}
+			// log.Printf("Sim:%08x, Mod:%04x, Unicode:%02x, %t\n",
+			// 	e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode,
+			// 	e.Keysym.Unicode)
+			if vias, ok := kmVias[e.Keysym.Sym]; ok {
+				viasC <- vias
+				break
+			}
+			if vias, ok := kmFontSize[e.Keysym.Sym]; ok {
+				c.changeFontSize(vias)
+				break
+			}
 		case sdl.ResizeEvent:
 			if err := c.setSurface(int(e.W), int(e.H)); err != nil {
 				log.Fatal(err)
@@ -158,7 +209,7 @@ func (c *sdlCtx) displayScript(script *srt.Script,
 
 	if c.font == nil {
 		log.Println("set default font")
-		err := c.SetFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE)
+		err := c.setFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE)
 		if err != nil {
 			log.Fatal("failed to set default font")
 			return
@@ -179,10 +230,11 @@ func (c *sdlCtx) displayScript(script *srt.Script,
 		return
 	}
 
-	timer := time.NewTimer(script.Duration())
-	<-timer.C
-	if c.currScript == script {
-		c.surface.FillRect(nil, 0 /* BG_COLOR */)
-		c.surface.Flip()
-	}
+	go func() {
+		<-time.After(script.Duration())
+		if c.currScript != nil && c.currScript == script {
+			c.surface.FillRect(nil, 0 /* BG_COLOR */)
+			c.surface.Flip()
+		}
+	}()
 }

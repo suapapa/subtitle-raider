@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var viasC chan time.Duration
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage:", os.Args[0], "[srt file]")
@@ -20,41 +22,51 @@ func main() {
 
 	screen.Clear()
 
-	tickDuration, _ := time.ParseDuration("10ms")
+	tickDuration, _ := time.ParseDuration("100ms")
 	tkr := time.NewTicker(tickDuration)
 	defer tkr.Stop()
 
 	var vias time.Duration
+	viasC = make(chan time.Duration)
+
 	var nextScript *srt.Script
 	startTime := time.Now()
+
+CHAN_LOOP:
 	for {
-		<-tkr.C
-		currMs := time.Since(startTime)
-		currMs += vias
+		select {
+		case viasAdd := <-viasC:
+			fmt.Println("vias=", viasAdd)
+			vias += viasAdd
+		case <-tkr.C:
+			currMs := time.Since(startTime)
+			currMs += vias
 
-		if currMs < 0 {
-			nextScript = &b[0]
-			continue
-		}
+			if currMs < 0 {
+				nextScript = &b[0]
+				continue
+			}
 
-		if nextScript == nil {
-			i := sort.Search(len(b), func(i int) bool {
-				return b[i].Start >= currMs
-			})
+			if nextScript == nil {
+				i := sort.Search(len(b), func(i int) bool {
+					return b[i].Start >= currMs
+				})
 
-			if i >= len(b) {
-				lastScript := b[len(b)-1]
-				if lastScript.End < currMs {
-					fmt.Println("book ended")
-					break
+				if i < len(b) {
+					nextScript = &b[i]
+				} else {
+					lastScript := b[len(b)-1]
+					if lastScript.End < currMs {
+						fmt.Println("book ended")
+						break CHAN_LOOP
+					}
 				}
 			}
-			nextScript = &b[i]
-		}
 
-		if nextScript != nil && nextScript.Start <= currMs {
-			screen.DisplayScript(nextScript)
-			nextScript = nil
+			if nextScript != nil && nextScript.Start <= currMs {
+				screen.DisplayScript(nextScript)
+				nextScript = nil
+			}
 		}
 	}
 }

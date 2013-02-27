@@ -1,4 +1,10 @@
 
+# Keybinding
+* `<` and `>`           : prev/next script
+* `+` and `-`           : increase/decrease font size by 5
+* `left` and `right`    : Adjust vias to -/+ 1 seconds
+* `up` and `down`       : Adjust vias to -/+ 10 seconds
+* `z` and `x`           : Adjust vias to -/+ 0.1 seconds
 
 # Requirement
 
@@ -31,5 +37,7 @@ Install Go-SDL:
 
 It will install `github.com/0xe2-0x9a-0x9b/Go-SDL/sdl` and 
 `github.com/0xe2-0x9a-0x9b/Go-SDL/ttf`.
+
+
 
 [1]:https://github.com/banthar/Go-SDL/issues/35#issuecomment-3597261
