@@ -24,12 +24,13 @@ func main() {
 	tkr := time.NewTicker(tickDuration)
 	defer tkr.Stop()
 
-	var nextScript *srt.Script = &b[0]
+	var vias time.Duration
+	var nextScript *srt.Script
 	startTime := time.Now()
-	/* var viasMs int */
 	for {
 		<-tkr.C
 		currMs := time.Since(startTime)
+		currMs += vias
 
 		if currMs < 0 {
 			nextScript = &b[0]
@@ -37,7 +38,6 @@ func main() {
 		}
 
 		if nextScript == nil {
-			fmt.Println("searching next script...")
 			i := sort.Search(len(b), func(i int) bool {
 				return b[i].Start >= currMs
 			})
