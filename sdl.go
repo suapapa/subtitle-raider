@@ -91,8 +91,6 @@ func (c *sdlCtx) Clear() {
 	log.Println("clear")
 	c.surface.FillRect(nil, 0 /* BG_COLOR */)
 	c.surface.Flip()
-	// script := ttf.RenderText_Blended(c.font, "CLEAR", TEXT_COLOR)
-	// c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, script, nil)
 	c.currScript = nil
 }
 
@@ -102,16 +100,16 @@ func (c *sdlCtx) DisplayScript(script *srt.Script) {
 	}
 	c.currScript = script
 
-	durationMs := script.EndMs - script.StartMs
-	log.Printf("display(%08d) %s", durationMs, script.Text)
-	timer := time.NewTimer(time.Duration(durationMs) * time.Millisecond)
+	log.Printf("display %s", script.Text)
+	timer := time.NewTimer(script.Duration())
 
-	w, h, err := c.font.SizeUTF8(script.Text)
-	if err != 0 {
-		log.Fatal("Failed to get size of the font")
-	}
-	log.Println("size = %dx%d", w, h)
+	// w, h, err := c.font.SizeUTF8(script.Text)
+	// if err != 0 {
+	// 	log.Fatal("Failed to get size of the font")
+	// }
+
 	glypse := ttf.RenderUTF8_Blended(c.font, script.Text, TEXT_COLOR)
+	c.surface.FillRect(nil, 0 /* BG_COLOR */)
 	c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, glypse, nil)
 	c.surface.Flip()
 

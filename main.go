@@ -13,7 +13,7 @@ func main() {
 		fmt.Println("Usage:", os.Args[0], "[srt file]")
 		return
 	}
-	b := srt.UnmarshalFile(os.Args[1])
+	b := srt.ReadSrtFile(os.Args[1])
 
 	screen := NewSdlContext(640, 480)
 	defer screen.Release()
@@ -40,12 +40,12 @@ func main() {
 		if nextScript == nil {
 			fmt.Println("searching next script...")
 			i := sort.Search(len(b), func(i int) bool {
-				return time.Duration(b[i].StartMs)*time.Millisecond >= currMs
+				return b[i].Start >= currMs
 			})
 
 			if i >= len(b) {
 				lastScript := b[len(b)-1]
-				if time.Duration(lastScript.EndMs) < currMs {
+				if lastScript.End < currMs {
 					fmt.Println("book ended")
 					break
 				}
@@ -53,10 +53,9 @@ func main() {
 			nextScript = &b[i]
 		}
 
-		if nextScript != nil && time.Duration(nextScript.StartMs) <= currMs {
+		if nextScript != nil && nextScript.Start <= currMs {
 			screen.DisplayScript(nextScript)
 			nextScript = nil
 		}
-
 	}
 }

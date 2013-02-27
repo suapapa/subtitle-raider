@@ -6,19 +6,22 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
-	/* "time" */
+	"time"
 )
 
 type Script struct {
-	Idx     int
-	StartMs int
-	EndMs   int
-	Text    string
+	Idx        int
+	Start, End time.Duration
+	Text       string
+}
+
+func (s *Script) Duration() time.Duration {
+	return s.End - s.Start
 }
 
 type Book []Script
 
-func Unmarshal(data []byte) Book {
+func ReadSrt(data []byte) Book {
 	var book Book
 	var script Script
 
@@ -59,8 +62,13 @@ func Unmarshal(data []byte) Book {
 			if err != nil {
 				log.Fatalln("failed to parse timestamp!")
 			}
-			script.StartMs = sMs + sS*1000 + sM*60*1000 + sH*60*60*1000
-			script.EndMs = eMs + eS*1000 + eM*60*1000 + eH*60*60*1000
+
+			startMs := sMs + sS*1000 + sM*60*1000 + sH*60*60*1000
+			script.Start = time.Duration(startMs) * time.Millisecond
+
+			endMs := eMs + eS*1000 + eM*60*1000 + eH*60*60*1000
+			script.End = time.Duration(endMs) * time.Millisecond
+
 			script.Text = ""
 			/* log.Println("script = ", script) */
 			state = STATE_SCRIPT
@@ -84,10 +92,10 @@ func Unmarshal(data []byte) Book {
 	return book
 }
 
-func UnmarshalFile(filename string) Book {
+func ReadSrtFile(filename string) Book {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatalln("faile to read file, ", filename)
 	}
-	return Unmarshal(data)
+	return ReadSrt(data)
 }
