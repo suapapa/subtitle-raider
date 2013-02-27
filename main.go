@@ -20,7 +20,7 @@ func main() {
 
 	screen.Clear()
 
-	tickDuration, _ := time.ParseDuration("100ms")
+	tickDuration, _ := time.ParseDuration("10ms")
 	tkr := time.NewTicker(tickDuration)
 	defer tkr.Stop()
 
@@ -30,7 +30,6 @@ func main() {
 	for {
 		<-tkr.C
 		currMs := time.Since(startTime)
-		fmt.Println("currMs", currMs)
 
 		if currMs < 0 {
 			nextScript = &b[0]
