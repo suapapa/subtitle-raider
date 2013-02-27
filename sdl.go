@@ -2,6 +2,8 @@ package main
 
 import (
 	"./srt"
+	"errors"
+	"fmt"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/ttf"
 	"log"
@@ -9,7 +11,8 @@ import (
 )
 
 const (
-	FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
+	DEFAULT_FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
+	DEFAULT_FONT_SIZE = 70
 )
 
 var (
@@ -18,9 +21,14 @@ var (
 )
 
 type sdlCtx struct {
-	surface    *sdl.Surface
-	font       *ttf.Font
+	surface *sdl.Surface
+	w, h    int
+
 	currScript *srt.Script
+	font       *ttf.Font
+	lineHeight int
+
+	FontSize int
 }
 
 func NewSdlContext(w, h int) *sdlCtx {
@@ -43,16 +51,9 @@ func NewSdlContext(w, h int) *sdlCtx {
 
 	sdl.EnableUNICODE(1)
 
-	// TODO: fix hard coded font size
 	if ttf.Init() != 0 {
 		log.Fatal("failed to init ttf", sdl.GetError())
 	}
-	ctx.font = ttf.OpenFont(FONT_PATH, 72)
-	if ctx.font == nil {
-		log.Fatal("failed to open font:", sdl.GetError())
-		return nil
-	}
-	/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
 
 	title := "Subtitle Player"
 	icon := "" // path/to/icon
@@ -103,6 +104,15 @@ func (c *sdlCtx) DisplayScript(script *srt.Script) {
 	log.Printf("display %s", script.Text)
 	timer := time.NewTimer(script.Duration())
 
+	if c.font == nil {
+		log.Println("set default font")
+		err := c.SetFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE)
+		if err != nil {
+			log.Fatal("failed to set default font")
+			return
+		}
+	}
+
 	// w, h, err := c.font.SizeUTF8(script.Text)
 	// if err != 0 {
 	// 	log.Fatal("Failed to get size of the font")
@@ -120,6 +130,19 @@ func (c *sdlCtx) DisplayScript(script *srt.Script) {
 	}
 }
 
+func (c *sdlCtx) SetFont(path string, size int) error {
+	c.font = ttf.OpenFont(path, size)
+	if c.font == nil {
+		errMsg := fmt.Sprintf("failed to open font from %s: %s",
+			path, sdl.GetError())
+		return errors.New(errMsg)
+	}
+	c.FontSize = size
+	c.lineHeight = c.font.LineSkip()
+	return nil
+}
+
+/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
 func (c *sdlCtx) Release() {
 	if c.font != nil {
 		c.font.Close()
