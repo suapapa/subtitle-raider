@@ -15,13 +15,13 @@ func main() {
 	}
 	b := srt.UnmarshalFile(os.Args[1])
 
-	tickStepMs = 100
+	tickStepMs := time.Duration(100)
 	tkr := time.NewTicker(tickStepMs * time.Millisecond)
 	defer tkr.Stop()
 
 	var nextScript *srt.Script = &b[0]
 	var currScript *srt.Script = nil
-	var currMs int
+	var currMs time.Duration
 	/* var viasMs int */
 	for {
 		<-tkr.C
@@ -34,7 +34,7 @@ func main() {
 
 		fmt.Printf("\r%d\t", currMs)
 
-		if currScript != nil && currScript.EndMs <= currMs {
+		if currScript != nil && time.Duration(currScript.EndMs) <= currMs {
 			currScript = nil
 		}
 
@@ -47,7 +47,7 @@ func main() {
 
 		if nextScript == nil {
 			i := sort.Search(len(b), func(i int) bool {
-				return b[i].StartMs >= currMs
+				return time.Duration(b[i].StartMs) >= currMs
 			})
 
 			if i < len(b) {
@@ -55,7 +55,7 @@ func main() {
 			}
 		}
 
-		if nextScript != nil && nextScript.StartMs <= currMs {
+		if nextScript != nil && time.Duration(nextScript.StartMs) <= currMs {
 			currScript = nextScript
 			nextScript = nil
 		}
