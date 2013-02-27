@@ -114,8 +114,10 @@ func (c *sdlCtx) DisplayScript(script *srt.Script) {
 	c.surface.Flip()
 
 	<-timer.C
-	c.surface.FillRect(nil, 0 /* BG_COLOR */)
-	c.surface.Flip()
+	if c.currScript == script {
+		c.surface.FillRect(nil, 0 /* BG_COLOR */)
+		c.surface.Flip()
+	}
 }
 
 func (c *sdlCtx) Release() {
