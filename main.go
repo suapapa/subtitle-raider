@@ -18,7 +18,7 @@ func main() {
 	b := srt.ReadSrtFile(os.Args[1])
 
 	screen := NewSdlContext(640, 480)
-	defer screen.Release()
+	/* defer screen.Release() */
 
 	screen.Clear()
 

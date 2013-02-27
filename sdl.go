@@ -7,6 +7,7 @@ import (
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/ttf"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -118,6 +119,8 @@ func (c *sdlCtx) setFont(path string, size int) error {
 	c.fontSize = size
 	c.fontPath = path
 	c.lineHeight = c.font.LineSkip()
+
+	log.Println(c.fontSize, c.lineHeight)
 	/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
 	return nil
 }
@@ -221,9 +224,17 @@ func (c *sdlCtx) displayScript(script *srt.Script,
 	// 	log.Fatal("Failed to get size of the font")
 	// }
 
-	glypse := ttf.RenderUTF8_Blended(c.font, script.Text, TEXT_COLOR)
 	c.surface.FillRect(nil, 0 /* BG_COLOR */)
-	c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, glypse, nil)
+	offsetX := 10
+	offsetY := 10
+
+	for _, line := range strings.Split(script.Text, "\n") {
+		glypse := ttf.RenderUTF8_Blended(c.font, line, TEXT_COLOR)
+		lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
+		c.surface.Blit(&lt, glypse, nil)
+		offsetY += c.lineHeight
+
+	}
 	c.surface.Flip()
 
 	if andClear == false {
