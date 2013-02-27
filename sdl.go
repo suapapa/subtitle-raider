@@ -219,16 +219,17 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 		}
 	}
 
-	// w, h, err := c.font.SizeUTF8(script.Text)
-	// if err != 0 {
-	// 	log.Fatal("Failed to get size of the font")
-	// }
-
 	c.surface.FillRect(nil, 0 /* BG_COLOR */)
 	offsetX := 10
 	offsetY := 10
 
 	for _, line := range strings.Split(script.Text, "\n") {
+		w, _, err := c.font.SizeUTF8(line)
+		if err != 0 {
+			log.Fatal("Failed to get size of the font")
+		}
+		offsetX = (c.w - w) / 2
+
 		glypse := ttf.RenderUTF8_Blended(c.font, line, TEXT_COLOR)
 		lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
 		c.surface.Blit(&lt, glypse, nil)
