@@ -28,8 +28,10 @@ var (
 )
 
 type sdlCtx struct {
-	surface *sdl.Surface
-	w, h    int
+	surface      *sdl.Surface
+	dirtySurface bool
+	fps          int
+	w, h         int
 
 	currScript *subtitle.Script
 	font       *ttf.Font
@@ -65,6 +67,9 @@ func NewSdlContext(w, h int) *sdlCtx {
 	sdl.WM_SetCaption(title, icon)
 
 	sdl.EnableUNICODE(1)
+
+	// XXX: fix it to set from argument
+	ctx.fps = 30
 
 	go func() {
 	EVENT_LOOP:
@@ -105,7 +110,8 @@ func (c *sdlCtx) Clear() {
 	}
 	log.Println("clear")
 	c.surface.FillRect(nil, 0 /* BG_COLOR */)
-	c.surface.Flip()
+	c.dirtySurface = true
+	/* c.surface.Flip() */
 	c.currScript = nil
 }
 
@@ -178,11 +184,17 @@ func (c *sdlCtx) handelEvent() error {
 		sdl.K_SPACE:  0,
 		sdl.K_COMMA:  -1, // <
 		sdl.K_PERIOD: +1, // >
-		// sdl. : -1,
-		// sdl. : +1,
 	}
 
+	fpsTicker := time.NewTicker(time.Second / time.Duration(c.fps)) // 30fps
+
 	select {
+	case <-fpsTicker.C:
+		if c.dirtySurface {
+			c.surface.Flip()
+			c.dirtySurface = false
+		}
+
 	case event := <-sdl.Events:
 		/* log.Printf("%#v\n", event) */
 		switch e := event.(type) {
@@ -291,7 +303,8 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 		}
 
 	}
-	c.surface.Flip()
+	c.dirtySurface = true
+	/* c.surface.Flip() */
 
 	if andClear == false {
 		return
