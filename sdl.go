@@ -18,7 +18,7 @@ import (
 
 const (
 	DEFAULT_FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
-	DEFAULT_FONT_SIZE = 60
+	DEFAULT_FONT_SIZE = 90
 )
 
 var (
@@ -187,9 +187,9 @@ func (c *sdlCtx) handelEvent() error {
 	}
 
 	kmFontSize := map[uint32]int{
-		sdl.K_PLUS:     +5,
-		sdl.K_KP_PLUS:  +5,
+		sdl.K_EQUALS:   +5, // +
 		sdl.K_MINUS:    -5,
+		sdl.K_KP_PLUS:  +5,
 		sdl.K_KP_MINUS: -5,
 	}
 
@@ -265,7 +265,7 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 	}
 	c.currScript = script
 
-	log.Printf("display %s", script.Text)
+	log.Printf("display %d.%s", script.Idx, script.Text)
 
 	if c.font == nil {
 		log.Println("set default font")

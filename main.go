@@ -31,7 +31,8 @@ func main() {
 	}
 	book := subtitle.ReadSrtFile(os.Args[1])
 
-	screen := NewSdlContext(640, 480)
+	// XXX: fix to get size form argument
+	screen := NewSdlContext(1024, 480)
 	/* defer screen.Release() */
 
 	screen.Clear()
@@ -60,18 +61,17 @@ CHAN_LOOP:
 			}
 			if nav == 0 {
 				paused = !paused
-				fmt.Println("paused=", paused)
 			}
 
 			currScript := &book[currScriptIdx]
 			nextScript = nil
-			screen.DisplayScript(currScript)
 			if paused == false {
-				vias = currScript.Start - time.Since(startTime)
+				startTime = time.Now()
+				vias = -currScript.Start
 			}
+			screen.DisplayScript(currScript)
 
 		case viasAdd := <-viasC:
-			fmt.Println("vias=", viasAdd)
 			vias += viasAdd
 
 		case <-debugTkr.C:
@@ -103,7 +103,6 @@ CHAN_LOOP:
 				} else {
 					lastScript := book[len(book)-1]
 					if lastScript.End < currMs {
-						fmt.Println("book ended")
 						break CHAN_LOOP
 					}
 				}
