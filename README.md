@@ -1,3 +1,8 @@
+# subtitle-player: Play subtitle on screen acording to it's timestamp.
+
+# Usage
+
+$ 
 
 # Keybinding
 * `<` and `>`           : prev/next script
@@ -6,9 +11,9 @@
 * `up` and `down`       : Adjust vias to -/+ 10 seconds
 * `z` and `x`           : Adjust vias to -/+ 0.1 seconds
 
-# Requirement
+## Build and install
 
-## GO-SDL
+### Requirement : Go-SDL
 
 Install dependency packages:
 

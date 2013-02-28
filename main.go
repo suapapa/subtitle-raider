@@ -8,8 +8,17 @@ import (
 	"time"
 )
 
-var viasC chan time.Duration
-var navC chan int
+var (
+	viasC chan time.Duration
+	navC chan int
+	quitC chan bool
+)
+
+func init() {
+	viasC = make(chan time.Duration)
+	navC = make(chan int)
+	quitC = make(chan bool)
+}
 
 func main() {
 	if len(os.Args) != 2 {
@@ -26,9 +35,6 @@ func main() {
 	tickDuration, _ := time.ParseDuration("100ms")
 	tkr := time.NewTicker(tickDuration)
 	defer tkr.Stop()
-
-	viasC = make(chan time.Duration)
-	navC = make(chan int)
 
 	var nextScript *subtitle.Script
 	startTime := time.Now()
@@ -95,6 +101,9 @@ CHAN_LOOP:
 				currScriptIdx = nextScript.Idx - 1
 				nextScript = nil
 			}
+		case <-quitC:
+			break CHAN_LOOP
+
 		}
 	}
 }

@@ -14,7 +14,7 @@ import (
 
 const (
 	DEFAULT_FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
-	DEFAULT_FONT_SIZE = 70
+	DEFAULT_FONT_SIZE = 60
 )
 
 var (
@@ -72,6 +72,7 @@ func NewSdlContext(w, h int) *sdlCtx {
 			}
 		}
 		log.Println("sdl: exit event loop")
+		quitC<- true
 	}()
 
 	return &ctx
