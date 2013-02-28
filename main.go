@@ -41,7 +41,7 @@ func main() {
 	tkr := time.NewTicker(tickDuration)
 	/* defer tkr.Stop() */
 
-	debugTkr := time.NewTicker(time.Second / 15)
+	debugTkr := time.NewTicker(time.Second / 20)
 
 	var nextScript *subtitle.Script
 	startTime := time.Now()
@@ -83,9 +83,10 @@ CHAN_LOOP:
 			if nextScript == nil {
 				continue CHAN_LOOP
 			}
-			debugStr := fmt.Sprintf("%d:%s(%s...%s) TS=%s(%s+%s)",
+			debugStr := fmt.Sprintf("%d:%s(%s...%s) ClearTs=%s TS=%s(%s+%s)",
 				nextScript.Idx, nextScript.Text,
 				nextScript.Start, nextScript.End,
+				tsClear,
 				tsCurr+tsVias, tsCurr, tsVias)
 			screen.displayDebug(debugStr)
 
