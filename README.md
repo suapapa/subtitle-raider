@@ -1,19 +1,17 @@
-# subtitle-player: Play subtitle on screen acording to it's timestamp.
+# subtitle-raider: A subtitle only player
 
-# Usage
+Play subtitle on -it's own separate- screen according to is's timestamp.
+It's useful to movie player which don't have subtitle capability
+(like DLNA player).
 
-$ 
+> Contribute to my mother who complained about
+> absence of Korean subtitle on a movie, TombRaider.
 
-# Keybinding
-* `<` and `>`           : prev/next script
-* `+` and `-`           : increase/decrease font size by 5
-* `left` and `right`    : Adjust vias to -/+ 1 seconds
-* `up` and `down`       : Adjust vias to -/+ 10 seconds
-* `z` and `x`           : Adjust vias to -/+ 0.1 seconds
+## How to build
 
-## Build and install
+[Install Go][1]
 
-### Requirement : Go-SDL
+### Install requirement packages for Go-SDL (on Ubuntu 12.04)
 
 Install dependency packages:
 
@@ -34,15 +32,28 @@ following context:
     Libs: -L${libdir} -lSDL_ttf
     Cflags: -I${includedir}/SDL
 
-[Read more][1] about this issue.
+[Read more][2] about this issue.
 
-Install Go-SDL:
+### Build and Install
 
     $ go get
+    $ go build
+    $ go install
 
-It will install `github.com/0xe2-0x9a-0x9b/Go-SDL/sdl` and 
-`github.com/0xe2-0x9a-0x9b/Go-SDL/ttf`.
+## Usage
+
+Run with your subtitle. Currently only SRT is supported
+
+    $ subtitle-raider example.srt
+
+### Keybinding
+
+* `<` and `>`           : prev/next script
+* `+` and `-`           : increase/decrease font size by 5
+* `left` and `right`    : Adjust vias to -/+ 1 seconds
+* `up` and `down`       : Adjust vias to -/+ 10 seconds
+* `z` and `x`           : Adjust vias to -/+ 0.1 seconds
 
 
-
-[1]:https://github.com/banthar/Go-SDL/issues/35#issuecomment-3597261
+[1]:http://golang.org/doc/install
+[2]:https://github.com/banthar/Go-SDL/issues/35#issuecomment-3597261

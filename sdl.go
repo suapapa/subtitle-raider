@@ -72,7 +72,7 @@ func NewSdlContext(w, h int) *sdlCtx {
 			}
 		}
 		log.Println("sdl: exit event loop")
-		quitC<- true
+		quitC <- true
 	}()
 
 	return &ctx

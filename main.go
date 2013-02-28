@@ -10,7 +10,7 @@ import (
 
 var (
 	viasC chan time.Duration
-	navC chan int
+	navC  chan int
 	quitC chan bool
 )
 
