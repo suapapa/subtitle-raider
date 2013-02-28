@@ -22,23 +22,27 @@ const (
 )
 
 var (
-	BG_COLOR    = sdl.Color{0, 0, 0, 0}
-	TEXT_COLOR  = sdl.Color{255, 255, 255, 0}
-	waitFinishC = make(chan bool)
+	BG_COLOR         = sdl.Color{0, 0, 0, 0}
+	TEXT_COLOR       = sdl.Color{255, 255, 255, 0}
+	DEBUG_TEXT_COLOR = sdl.Color{32, 32, 32, 0}
+	waitFinishC      = make(chan bool)
 )
 
 type sdlCtx struct {
 	surface      *sdl.Surface
 	dirtySurface bool
 	fps          int
-	w, h         int
+	w, h         uint16
 
 	currScript *subtitle.Script
-	font       *ttf.Font
-	lineHeight int
+	lineHeight uint16
 
 	fontSize int
 	fontPath string
+	font     *ttf.Font
+
+	debugFont       *ttf.Font
+	debugLineHeight uint16
 }
 
 func NewSdlContext(w, h int) *sdlCtx {
@@ -70,6 +74,15 @@ func NewSdlContext(w, h int) *sdlCtx {
 
 	// XXX: fix it to set from argument
 	ctx.fps = 30
+
+	ctx.debugFont = ttf.OpenFont(DEFAULT_FONT_PATH, 20)
+	if ctx.debugFont == nil {
+		errMsg := fmt.Sprintf("failed to open font from %s: %s",
+			DEFAULT_FONT_PATH, sdl.GetError())
+		/* return errors.New(errMsg) */
+		log.Fatal(errMsg)
+	}
+	ctx.debugLineHeight = uint16(ctx.debugFont.LineSkip())
 
 	go func() {
 	EVENT_LOOP:
@@ -109,7 +122,7 @@ func (c *sdlCtx) Clear() {
 		return
 	}
 	log.Println("clear")
-	c.surface.FillRect(nil, 0 /* BG_COLOR */)
+	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
 	c.dirtySurface = true
 	/* c.surface.Flip() */
 	c.currScript = nil
@@ -130,7 +143,7 @@ func (c *sdlCtx) setFont(path string, size int) error {
 
 	c.fontSize = size
 	c.fontPath = path
-	c.lineHeight = c.font.LineSkip()
+	c.lineHeight = uint16(c.font.LineSkip())
 
 	log.Println(c.fontSize, c.lineHeight)
 	/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
@@ -154,7 +167,7 @@ func (c *sdlCtx) setSurface(w, h int) error {
 		return errors.New(errMsg)
 	}
 
-	c.w, c.h = w, h
+	c.w, c.h = uint16(w), uint16(h)
 	if c.currScript != nil {
 		c.displayScript(c.currScript, false, true)
 	}
@@ -238,6 +251,13 @@ func (c *sdlCtx) handelEvent() error {
 	return nil
 }
 
+func (c *sdlCtx) displayDebug(text string) {
+	c.surface.FillRect(&sdl.Rect{0, 0, c.w, c.debugLineHeight}, 0 /* BG_COLOR */)
+	glypse := ttf.RenderUTF8_Solid(c.debugFont, text, DEBUG_TEXT_COLOR)
+	c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, glypse, nil)
+	c.surface.Flip()
+}
+
 func (c *sdlCtx) displayScript(script *subtitle.Script,
 	andClear bool, forceUpdate bool) {
 	if forceUpdate == false && c.currScript == script {
@@ -256,9 +276,8 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 		}
 	}
 
-	c.surface.FillRect(nil, 0 /* BG_COLOR */)
-	offsetX := 10
-	offsetY := 10
+	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
+	offsetY := c.debugLineHeight
 
 	for _, line := range strings.Split(script.TextWithoutMarkup(), "\n") {
 		runeLine := []rune(line)
@@ -270,7 +289,7 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 			runeSubLine := runeLine[runeLineStart:]
 			i := sort.Search(len(runeSubLine), func(i int) bool {
 				w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
-				return (w - 20) >= c.w
+				return uint16(w-20) >= c.w
 			})
 			/* log.Println("runeSubLine=", string(runeSubLine)) */
 
@@ -294,7 +313,7 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 			if err != 0 {
 				log.Fatal("Failed to get size of the font")
 			}
-			offsetX = (c.w - w) / 2
+			offsetX := (c.w - uint16(w)) / 2
 
 			glypse := ttf.RenderUTF8_Blended(c.font, subline, TEXT_COLOR)
 			lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
@@ -313,7 +332,7 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 	go func() {
 		<-time.After(script.Duration())
 		if c.currScript != nil && c.currScript == script {
-			c.surface.FillRect(nil, 0 /* BG_COLOR */)
+			c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
 			c.surface.Flip()
 		}
 	}()

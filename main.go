@@ -38,7 +38,9 @@ func main() {
 
 	tickDuration, _ := time.ParseDuration("100ms")
 	tkr := time.NewTicker(tickDuration)
-	defer tkr.Stop()
+	/* defer tkr.Stop() */
+
+	debugTkr := time.NewTicker(time.Second / 15)
 
 	var nextScript *subtitle.Script
 	startTime := time.Now()
@@ -71,6 +73,12 @@ CHAN_LOOP:
 		case viasAdd := <-viasC:
 			fmt.Println("vias=", viasAdd)
 			vias += viasAdd
+
+		case <-debugTkr.C:
+			currMs := time.Since(startTime)
+			debugStr := fmt.Sprintf("currMS=%s, vias=%s, tunedTs=%s nextScript=%s",
+				currMs, vias, currMs+vias, nextScript)
+			screen.displayDebug(debugStr)
 
 		case <-tkr.C:
 			// XXX: pause not working?
