@@ -48,11 +48,12 @@ Run with your subtitle. Currently only SRT is supported
 
 ### Keybinding
 
-* `<` and `>`           : prev/next script
+* `<` and `>`           : Set to prev/next script
 * `+` and `-`           : increase/decrease font size by 5
 * `left` and `right`    : Adjust vias to -/+ 1 seconds
 * `up` and `down`       : Adjust vias to -/+ 10 seconds
 * `z` and `x`           : Adjust vias to -/+ 0.1 seconds
+* `q`                   : Quit
 
 
 [1]:http://golang.org/doc/install

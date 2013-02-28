@@ -222,6 +222,10 @@ func (c *sdlCtx) handelEvent() error {
 			}
 
 			keysym := e.Keysym.Sym
+			if keysym == sdl.K_q {
+				return errors.New("sdl: received QuitEvent")
+			}
+
 			// tune timestamp
 			if v, ok := kmVias[keysym]; ok {
 				tsViasC <- v
