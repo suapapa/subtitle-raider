@@ -67,7 +67,7 @@ CHAN_LOOP:
 			nextScript = nil
 			if paused == false {
 				startTime = time.Now()
-				vias = -currScript.Start
+				vias = currScript.Start
 			}
 			screen.DisplayScript(currScript)
 
@@ -76,8 +76,13 @@ CHAN_LOOP:
 
 		case <-debugTkr.C:
 			currMs := time.Since(startTime)
-			debugStr := fmt.Sprintf("currMS=%s, vias=%s, tunedTs=%s nextScript=%s",
-				currMs, vias, currMs+vias, nextScript)
+			if nextScript == nil {
+				continue CHAN_LOOP
+			}
+			debugStr := fmt.Sprintf("%d:%s(%s...%s) TS=%s(%s+%s)",
+				nextScript.Idx, nextScript.Text,
+				nextScript.Start, nextScript.End,
+				currMs+vias, currMs, vias)
 			screen.displayDebug(debugStr)
 
 		case <-tkr.C:
