@@ -37,7 +37,7 @@ func main() {
 
 	screen.Clear()
 
-	tickDuration, _ := time.ParseDuration("100ms")
+	tickDuration, _ := time.ParseDuration("10ms")
 	tkr := time.NewTicker(tickDuration)
 	/* defer tkr.Stop() */
 
@@ -91,7 +91,6 @@ CHAN_LOOP:
 			screen.displayDebug(debugStr)
 
 		case <-tkr.C:
-			// XXX: pause not working?
 			if paused {
 				continue
 			}
