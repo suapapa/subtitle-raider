@@ -118,13 +118,9 @@ func (c *sdlCtx) DisplayScript(script *subtitle.Script) {
 }
 
 func (c *sdlCtx) Clear() {
-	if c.currScript == nil {
-		return
-	}
 	log.Println("clear")
 	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
 	c.dirtySurface = true
-	/* c.surface.Flip() */
 	c.currScript = nil
 }
 
@@ -323,17 +319,8 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 
 	}
 	c.dirtySurface = true
-	/* c.surface.Flip() */
 
 	if andClear == false {
 		return
 	}
-
-	go func() {
-		<-time.After(script.Duration())
-		if c.currScript != nil && c.currScript == script {
-			c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
-			c.surface.Flip()
-		}
-	}()
 }

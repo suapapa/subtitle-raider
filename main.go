@@ -47,6 +47,7 @@ func main() {
 	startTime := time.Now()
 
 	var tsVias time.Duration
+	var tsClear time.Duration
 	var paused bool
 	var currScriptIdx int
 CHAN_LOOP:
@@ -65,11 +66,14 @@ CHAN_LOOP:
 
 			currScript := &book[currScriptIdx]
 			nextScript = nil
+			screen.DisplayScript(currScript)
 			if paused == false {
 				startTime = time.Now()
 				tsVias = currScript.Start
+				tsClear = currScript.End
+			} else {
+				tsClear = 0
 			}
-			screen.DisplayScript(currScript)
 
 		case v := <-tsViasC:
 			tsVias += v
@@ -115,9 +119,16 @@ CHAN_LOOP:
 
 			if nextScript != nil && nextScript.Start <= tsCurr {
 				screen.DisplayScript(nextScript)
+				tsClear = nextScript.End
 				currScriptIdx = nextScript.Idx - 1
 				nextScript = nil
 			}
+
+			if tsClear != 0 && tsClear <= tsCurr {
+				screen.Clear()
+				tsClear = 0
+			}
+
 		case <-quitC:
 			break CHAN_LOOP
 
