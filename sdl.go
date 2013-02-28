@@ -227,20 +227,20 @@ func (c *sdlCtx) handelEvent() error {
 
 			keysym := e.Keysym.Sym
 			// tune timestamp
-			if vias, ok := kmVias[keysym]; ok {
-				viasC <- vias
+			if v, ok := kmVias[keysym]; ok {
+				tsViasC <- v
 				break
 			}
 			// tune font size
-			if vias, ok := kmFontSize[keysym]; ok {
-				c.changeFontSize(vias)
+			if v, ok := kmFontSize[keysym]; ok {
+				c.changeFontSize(v)
 				break
 			}
 
 			// pause/resume
-			if vias, ok := kmNavScript[keysym]; ok {
-				log.Println("TODO: nav vias=", vias)
-				navC <- vias
+			if v, ok := kmNavScript[keysym]; ok {
+				log.Println("TODO: nav tsVias=", v)
+				navC <- v
 				break
 			}
 			log.Printf("Sim:%08x, Mod:%04x, Unicode:%02x, %t\n",

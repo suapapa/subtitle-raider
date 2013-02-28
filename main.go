@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	viasC chan time.Duration
-	navC  chan int
-	quitC chan bool
+	tsViasC chan time.Duration
+	navC    chan int
+	quitC   chan bool
 )
 
 func init() {
-	viasC = make(chan time.Duration)
+	tsViasC = make(chan time.Duration)
 	navC = make(chan int)
 	quitC = make(chan bool)
 }
@@ -46,7 +46,7 @@ func main() {
 	var nextScript *subtitle.Script
 	startTime := time.Now()
 
-	var vias time.Duration
+	var tsVias time.Duration
 	var paused bool
 	var currScriptIdx int
 CHAN_LOOP:
@@ -67,22 +67,22 @@ CHAN_LOOP:
 			nextScript = nil
 			if paused == false {
 				startTime = time.Now()
-				vias = currScript.Start
+				tsVias = currScript.Start
 			}
 			screen.DisplayScript(currScript)
 
-		case viasAdd := <-viasC:
-			vias += viasAdd
+		case v := <-tsViasC:
+			tsVias += v
 
 		case <-debugTkr.C:
-			currMs := time.Since(startTime)
+			tsCurr := time.Since(startTime)
 			if nextScript == nil {
 				continue CHAN_LOOP
 			}
 			debugStr := fmt.Sprintf("%d:%s(%s...%s) TS=%s(%s+%s)",
 				nextScript.Idx, nextScript.Text,
 				nextScript.Start, nextScript.End,
-				currMs+vias, currMs, vias)
+				tsCurr+tsVias, tsCurr, tsVias)
 			screen.displayDebug(debugStr)
 
 		case <-tkr.C:
@@ -90,30 +90,30 @@ CHAN_LOOP:
 			if paused {
 				continue
 			}
-			currMs := time.Since(startTime)
-			currMs += vias
+			tsCurr := time.Since(startTime)
+			tsCurr += tsVias
 
-			if currMs < 0 {
+			if tsCurr < 0 {
 				nextScript = &book[0]
 				continue
 			}
 
 			if nextScript == nil {
 				i := sort.Search(len(book), func(i int) bool {
-					return book[i].Start >= currMs
+					return book[i].Start >= tsCurr
 				})
 
 				if i < len(book) {
 					nextScript = &book[i]
 				} else {
 					lastScript := book[len(book)-1]
-					if lastScript.End < currMs {
+					if lastScript.End < tsCurr {
 						break CHAN_LOOP
 					}
 				}
 			}
 
-			if nextScript != nil && nextScript.Start <= currMs {
+			if nextScript != nil && nextScript.Start <= tsCurr {
 				screen.DisplayScript(nextScript)
 				currScriptIdx = nextScript.Idx - 1
 				nextScript = nil
