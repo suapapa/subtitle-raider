@@ -175,7 +175,9 @@ func (c *sdlCtx) handelEvent() error {
 	}
 
 	kmNavScript := map[uint32]int{
-		sdl.K_SPACE: 0,
+		sdl.K_SPACE:  0,
+		sdl.K_COMMA:  -1, // <
+		sdl.K_PERIOD: +1, // >
 		// sdl. : -1,
 		// sdl. : +1,
 	}
