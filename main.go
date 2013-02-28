@@ -62,10 +62,10 @@ CHAN_LOOP:
 			}
 
 			currScript := &book[currScriptIdx]
+			nextScript = nil
 			screen.DisplayScript(currScript)
 			if paused == false {
-				vias = time.Since(startTime)
-				vias -= currScript.Start
+				vias = currScript.Start - time.Since(startTime)
 			}
 
 		case viasAdd := <-viasC:
@@ -73,6 +73,7 @@ CHAN_LOOP:
 			vias += viasAdd
 
 		case <-tkr.C:
+			// XXX: pause not working?
 			if paused {
 				continue
 			}
