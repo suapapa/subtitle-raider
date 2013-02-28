@@ -242,7 +242,7 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 	offsetX := 10
 	offsetY := 10
 
-	for _, line := range strings.Split(script.Text, "\n") {
+	for _, line := range strings.Split(script.TextWithoutMarkup(), "\n") {
 		runeLine := []rune(line)
 		runeLineLen := len(runeLine)
 		runeLineStart := 0
