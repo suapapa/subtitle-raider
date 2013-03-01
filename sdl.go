@@ -239,7 +239,6 @@ func (c *sdlCtx) handelEvent() error {
 
 			// pause/resume
 			if v, ok := kmNavScript[keysym]; ok {
-				log.Println("TODO: nav tsVias=", v)
 				navC <- v
 				break
 			}
