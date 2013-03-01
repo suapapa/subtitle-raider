@@ -34,7 +34,8 @@ func main() {
 	// }
 
 	tkr := time.NewTicker(time.Millisecond * 100)
-	debugTkr := time.NewTicker(time.Second / 20)
+	debugTkr := time.NewTicker(time.Second / 5)
+	debugTkr.Stop()
 
 	startTime := time.Now()
 

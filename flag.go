@@ -13,7 +13,7 @@ import (
 const (
 	DFLT_FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
 	DFLT_FONT_SIZE = 90
-	DFLT_FPS       = 30
+	DFLT_FPS       = 15
 )
 
 var (
@@ -31,6 +31,7 @@ type Options struct {
 	startIdx     int
 	scrnW, scrnH int
 	fps          int
+	alignCenter  bool
 
 	showText string
 }
@@ -38,16 +39,14 @@ type Options struct {
 func setupFlags(opts *Options) *flag.FlagSet {
 	prgName := os.Args[0]
 	fs := flag.NewFlagSet(prgName, flag.ExitOnError)
-	fs.IntVar(&opts.fontSize, "fn",
-		DFLT_FONT_SIZE, "script font size")
-	fs.StringVar(&opts.fontPath, "fp",
-		DFLT_FONT_PATH, "script font path")
-	fs.IntVar(&opts.fps, "fps",
-		DFLT_FPS, "fps")
+	fs.IntVar(&opts.fontSize, "fs", DFLT_FONT_SIZE, "font size")
+	fs.StringVar(&opts.fontPath, "fp", DFLT_FONT_PATH, "font path")
+	fs.IntVar(&opts.fps, "fps", DFLT_FPS, "fps")
 	fs.IntVar(&opts.startIdx, "s", 0, "set first scipt idx")
 	fs.IntVar(&opts.scrnW, "w", 1024, "screen width")
 	fs.IntVar(&opts.scrnH, "h", 480, "screen height")
 	fs.StringVar(&opts.showText, "d", "", "display given text")
+	fs.BoolVar(&opts.alignCenter, "c", false, "center align")
 
 	fs.Usage = func() {
 		fmt.Printf("Usage: %s [options] subtitle_file\n", prgName)

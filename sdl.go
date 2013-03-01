@@ -11,6 +11,7 @@ import (
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/ttf"
 	"log"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -61,7 +62,8 @@ func NewSdlContext(w, h int) *sdlCtx {
 	log.Println("WM_available = ", vInfo.WM_available)
 	log.Println("Video_mem = ", vInfo.Video_mem, "kb")
 
-	title := "Subtitle Player"
+	/* title := "Subtitle Player" */
+	title := os.Args[0]
 	icon := "" // path/to/icon
 	sdl.WM_SetCaption(title, icon)
 
@@ -125,24 +127,27 @@ func (c *sdlCtx) Clear() {
 }
 
 func (c *sdlCtx) setFont(path string, size int) error {
-	if size < 10 {
-		log.Println("set font size to minimum, 10")
-		size = 10
+
+	if c.font != nil {
+		c.font.Close()
 	}
 
+	if size < 10 {
+		size = 10
+	}
 	c.font = ttf.OpenFont(path, size)
 	if c.font == nil {
 		errMsg := fmt.Sprintf("failed to open font from %s: %s",
 			path, sdl.GetError())
 		return errors.New(errMsg)
 	}
+	/* c.font.SetStyle(ttf.STYLE_UNDERLINE) */
 
 	c.fontSize = size
 	c.fontPath = path
 	c.lineHeight = uint16(c.font.LineSkip())
 
-	log.Println(c.fontSize, c.lineHeight)
-	/* ctx.font.SetStyle(ttf.STYLE_UNDERLINE) */
+	log.Printf("fontsize=%d lineheight=%d\n", c.fontSize, c.lineHeight)
 	return nil
 }
 
@@ -164,9 +169,7 @@ func (c *sdlCtx) setSurface(w, h int) error {
 	}
 
 	c.w, c.h = uint16(w), uint16(h)
-	if c.currScript != nil {
-		c.displayScript(c.currScript, false, true)
-	}
+	c.displayScript(c.currScript, false, true)
 
 	return nil
 }
@@ -259,6 +262,9 @@ func (c *sdlCtx) displayDebug(text string) {
 
 func (c *sdlCtx) displayScript(script *subtitle.Script,
 	andClear bool, forceUpdate bool) {
+	if script == nil {
+		return
+	}
 	if forceUpdate == false && c.currScript == script {
 		return
 	}
@@ -277,17 +283,18 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 		for runeLineStart != runeLineLen {
 			/* log.Println("start =", runeLineStart, "len =", runeLineLen) */
 			runeSubLine := runeLine[runeLineStart:]
-			i := sort.Search(len(runeSubLine), func(i int) bool {
+			runeSubLineLen := len(runeSubLine)
+			i := sort.Search(runeSubLineLen, func(i int) bool {
 				w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
-				return uint16(w+20) >= c.w
+				return w+40 >= int(c.w)
 			})
 			/* log.Printf("runeSubLine=%s, i=%d\n", string(runeSubLine), i) */
 
-			if i != len(runeSubLine) && i > 1 {
+			if i != runeSubLineLen && i > 1 {
 				i -= 1
 			}
-			if i > runeLineLen {
-				i = runeLineLen
+			if i > runeSubLineLen {
+				i = runeSubLineLen
 			}
 			/* log.Println("returned i=", i) */
 
@@ -299,11 +306,14 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 				runeLineStart = runeLineLen
 			}
 
-			w, _, err := c.font.SizeUTF8(subline)
-			if err != 0 {
-				log.Fatal("Failed to get size of the font")
+			offsetX := 10
+			if opt.alignCenter {
+				w, _, err := c.font.SizeUTF8(subline)
+				if err != 0 {
+					log.Fatal("Failed to get size of the font")
+				}
+				offsetX = (int(c.w) - w) / 2
 			}
-			offsetX := (c.w - uint16(w)) / 2
 
 			glypse := ttf.RenderUTF8_Blended(c.font, subline, TEXT_COLOR)
 			lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
