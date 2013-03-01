@@ -257,7 +257,8 @@ func (c *sdlCtx) displayDebug(text string) {
 	c.surface.FillRect(&sdl.Rect{0, 0, c.w, c.debugLineHeight}, 0 /* BG_COLOR */)
 	glypse := ttf.RenderUTF8_Solid(c.debugFont, text, DEBUG_TEXT_COLOR)
 	c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, glypse, nil)
-	c.surface.Flip()
+	c.dirtySurface = true
+	/* c.surface.Flip() */
 }
 
 func (c *sdlCtx) displayScript(script *subtitle.Script,

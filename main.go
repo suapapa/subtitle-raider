@@ -26,16 +26,12 @@ func init() {
 func main() {
 	screen := NewSdlContext(opt.scrnW, opt.scrnH)
 	/* defer screen.Release() */
-	// if opt.showText != "" {
-	// 	screen.DisplayScript(&subtitle.Script{
-	// 		Text: opt.showText,
-	// 	})
-	// 	for {}
-	// }
 
 	tkr := time.NewTicker(time.Millisecond * 100)
 	debugTkr := time.NewTicker(time.Second / 5)
-	debugTkr.Stop()
+	if opt.debugScrn == false {
+		debugTkr.Stop()
+	}
 
 	startTime := time.Now()
 
@@ -81,16 +77,16 @@ CHAN_LOOP:
 			tsVias += v
 
 		case <-debugTkr.C:
-			tsCurr := time.Since(startTime)
 			if nextScript == nil {
 				continue CHAN_LOOP
 			}
-			debugStr := fmt.Sprintf("%d:%s(%s...%s) ClearTs=%s TS=%s(%s+%s)",
+			tsCurr := time.Since(startTime)
+			debugStr := fmt.Sprintf("%d:%s(%s...%s) ClearTs=%s Ts=%s",
 				nextScript.Idx, nextScript.Text,
 				nextScript.Start, nextScript.End,
-				tsClear,
-				tsCurr+tsVias, tsCurr, tsVias)
+				tsClear, tsCurr+tsVias)
 			screen.displayDebug(debugStr)
+			/* screen.displayDebug("debug display") */
 
 		case <-tkr.C:
 			if paused {

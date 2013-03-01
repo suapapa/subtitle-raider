@@ -32,6 +32,7 @@ type Options struct {
 	scrnW, scrnH int
 	fps          int
 	alignCenter  bool
+	debugScrn    bool
 
 	showText string
 }
@@ -45,8 +46,8 @@ func setupFlags(opts *Options) *flag.FlagSet {
 	fs.IntVar(&opts.startIdx, "s", 0, "set first scipt idx")
 	fs.IntVar(&opts.scrnW, "w", 1024, "screen width")
 	fs.IntVar(&opts.scrnH, "h", 480, "screen height")
-	fs.StringVar(&opts.showText, "d", "", "display given text")
 	fs.BoolVar(&opts.alignCenter, "c", false, "center align")
+	fs.BoolVar(&opts.debugScrn, "d", false, "show debug message on screen")
 
 	fs.Usage = func() {
 		fmt.Printf("Usage: %s [options] subtitle_file\n", prgName)
