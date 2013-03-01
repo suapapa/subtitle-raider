@@ -16,11 +16,6 @@ import (
 	"time"
 )
 
-const (
-	DEFAULT_FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
-	DEFAULT_FONT_SIZE = 90
-)
-
 var (
 	BG_COLOR         = sdl.Color{0, 0, 0, 0}
 	TEXT_COLOR       = sdl.Color{255, 255, 255, 0}
@@ -72,13 +67,18 @@ func NewSdlContext(w, h int) *sdlCtx {
 
 	sdl.EnableUNICODE(1)
 
-	// XXX: fix it to set from argument
-	ctx.fps = 30
+	ctx.fps = opt.fps
 
-	ctx.debugFont = ttf.OpenFont(DEFAULT_FONT_PATH, 20)
+	err := ctx.setFont(opt.fontPath, opt.fontSize)
+	if err != nil {
+		log.Fatal("failed to set default font")
+		return nil
+	}
+
+	ctx.debugFont = ttf.OpenFont(DFLT_FONT_PATH, 20)
 	if ctx.debugFont == nil {
-		errMsg := fmt.Sprintf("failed to open font from %s: %s",
-			DEFAULT_FONT_PATH, sdl.GetError())
+		errMsg := fmt.Sprintf("failed to open debug font: %s",
+			sdl.GetError())
 		/* return errors.New(errMsg) */
 		log.Fatal(errMsg)
 	}
@@ -266,15 +266,6 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 	c.currScript = script
 
 	log.Printf("display %d.%s", script.Idx, script.Text)
-
-	if c.font == nil {
-		log.Println("set default font")
-		err := c.setFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE)
-		if err != nil {
-			log.Fatal("failed to set default font")
-			return
-		}
-	}
 
 	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
 	offsetY := c.debugLineHeight

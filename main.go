@@ -7,7 +7,6 @@ package main
 import (
 	"./subtitle"
 	"fmt"
-	"os"
 	"sort"
 	"time"
 )
@@ -25,31 +24,33 @@ func init() {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage:", os.Args[0], "[srt file]")
-		return
-	}
-	book := subtitle.ReadSrtFile(os.Args[1])
-
-	// XXX: fix to get size form argument
-	screen := NewSdlContext(1024, 480)
+	screen := NewSdlContext(opt.scrnW, opt.scrnH)
 	/* defer screen.Release() */
+	// if opt.showText != "" {
+	// 	screen.DisplayScript(&subtitle.Script{
+	// 		Text: opt.showText,
+	// 	})
+	// 	for {}
+	// }
 
-	screen.Clear()
-
-	tickDuration, _ := time.ParseDuration("10ms")
-	tkr := time.NewTicker(tickDuration)
-	/* defer tkr.Stop() */
-
+	tkr := time.NewTicker(time.Millisecond * 100)
 	debugTkr := time.NewTicker(time.Second / 20)
 
-	var nextScript *subtitle.Script
 	startTime := time.Now()
 
 	var tsVias time.Duration
 	var tsClear time.Duration
 	var paused bool
 	var currScriptIdx int
+
+	var nextScript *subtitle.Script
+	book := subtitle.ReadSrtFile(flags[0])
+
+	if opt.startIdx > 0 && opt.startIdx < len(book) {
+		go func() {
+			navC <- opt.startIdx
+		}()
+	}
 CHAN_LOOP:
 	for {
 		select {
