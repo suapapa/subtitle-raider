@@ -280,9 +280,9 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 			runeSubLine := runeLine[runeLineStart:]
 			i := sort.Search(len(runeSubLine), func(i int) bool {
 				w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
-				return uint16(w-20) >= c.w
+				return uint16(w+20) >= c.w
 			})
-			/* log.Println("runeSubLine=", string(runeSubLine)) */
+			/* log.Printf("runeSubLine=%s, i=%d\n", string(runeSubLine), i) */
 
 			if i != len(runeSubLine) && i > 1 {
 				i -= 1
