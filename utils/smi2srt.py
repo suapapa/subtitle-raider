@@ -125,7 +125,7 @@ def convertSMI(smi_file):
 
 	# skip to first starting tag (skip first 0xff 0xfe ...)
 	try:
-		fndx = smi_sgml.find('<SYNC')
+		fndx = smi_sgml.upper().find('<SYNC')
 	except Exception, e:
 		print chdt
 		raise e
