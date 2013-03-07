@@ -6,11 +6,27 @@ package subtitle
 
 import (
 	"regexp"
+	"sort"
 	"time"
 )
 
 // Collection of scripts
 type Book []Script
+
+// Find a script on given timestamp.
+// If not hit, it returns next script.
+// So, caller should re-check the script is hit on the timestamp.
+func (b Book) Find(ts time.Duration) *Script {
+	si := sort.Search(len(b), func(i int) bool {
+		return b[i].Start >= ts
+	})
+
+	if si >= len(b) {
+		return nil
+	}
+
+	return &b[si]
+}
 
 // A script
 type Script struct {
@@ -33,23 +49,23 @@ func (s *Script) TextWithoutMarkup() string {
 func (s *Script) CheckHit(ts time.Duration) HitStatus {
 	switch {
 	case ts < s.Start:
-		return HS_EARLY
+		return SCR_EARLY
 	case ts >= s.Start && s.End >= s.End:
-		return HS_HIT
+		return SCR_HIT
 	case s.End < ts:
-		return HS_LATE
+		return SCR_LATE
 	}
-	return HS_INVALID
+	return SCR_INVALID
 }
 
 // HitStatus is type for timestamp check
 type HitStatus uint8
 
 const (
-	HS_INVALID HitStatus = iota
-	HS_EARLY             // Not yet
-	HS_HIT               // Now
-	HS_LATE              // Gone
+	SCR_INVALID HitStatus = iota
+	SCR_EARLY             // Not yet
+	SCR_HIT               // Now
+	SCR_LATE              // Gone
 )
 
 var reMakrup = regexp.MustCompile("</?[^<>]+?>")
