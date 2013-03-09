@@ -4,6 +4,8 @@ Play subtitle on -it's own separate- screen according to is's timestamp.
 It's useful to movie player which don't have subtitle capability
 (like DLNA player).
 
+[![ScreenShot](https://lh3.googleusercontent.com/-Ut4KVdErNeM/UTP1D5TuRuI/AAAAAAAACRc/DWt7NEWfhs8/s480/subtitile-raider_demo.jpg)](http://youtu.be/2hFV1MEc-lg)
+
 > Contribute to my mother who complained about
 > absence of Korean subtitle on a movie, TombRaider.
 

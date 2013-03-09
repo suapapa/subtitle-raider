@@ -271,12 +271,16 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 	}
 	c.currScript = script
 
-	log.Printf("display %d.%s", script.Idx, script.Text)
+	log.Printf("display %d.%s", script.Idx, script.TextWithoutMarkup())
 
 	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
 	offsetY := c.debugLineHeight
 
 	for _, line := range strings.Split(script.TextWithoutMarkup(), "\n") {
+		if strings.TrimSpace(line) == "" {
+			offsetY += c.lineHeight
+			continue
+		}
 		runeLine := []rune(line)
 		runeLineLen := len(runeLine)
 		runeLineStart := 0
@@ -291,6 +295,7 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 			})
 			/* log.Printf("runeSubLine=%s, i=%d\n", string(runeSubLine), i) */
 
+			// TODO: fix here to re-check cut point
 			if i != runeSubLineLen && i > 1 {
 				i -= 1
 			}
