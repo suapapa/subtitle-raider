@@ -7,6 +7,8 @@ package main
 import (
 	"./subtitle"
 	"fmt"
+	"log"
+	"os"
 	"sort"
 	"time"
 )
@@ -24,8 +26,10 @@ func init() {
 }
 
 func main() {
-	screen := NewSdlContext(opt.scrnW, opt.scrnH)
-	/* defer screen.Release() */
+	screen := NewScreen(opt.scrnW, opt.scrnH)
+
+	go eventLoop(screen)
+	go graphicLoop(screen)
 
 	tkr := time.NewTicker(time.Millisecond * 100)
 	debugTkr := time.NewTicker(time.Second / 5)
@@ -128,7 +132,9 @@ CHAN_LOOP:
 			}
 
 		case <-quitC:
-			break CHAN_LOOP
+			screen.Release()
+			log.Println("Bye Bye")
+			os.Exit(0)
 
 		}
 	}

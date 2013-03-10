@@ -24,11 +24,10 @@ var (
 	waitFinishC      = make(chan bool)
 )
 
-type sdlCtx struct {
-	surface      *sdl.Surface
-	dirtySurface bool
-	fps          int
-	w, h         uint16
+type Screen struct {
+	surface *sdl.Surface
+	fps     int
+	w, h    uint16
 
 	currScript *subtitle.Script
 	lineHeight uint16
@@ -39,9 +38,11 @@ type sdlCtx struct {
 
 	debugFont       *ttf.Font
 	debugLineHeight uint16
+
+	updateC chan int
 }
 
-func NewSdlContext(w, h int) *sdlCtx {
+func NewScreen(w, h int) *Screen {
 	if sdl.Init(sdl.INIT_EVERYTHING) != 0 {
 		log.Fatal("failed to init sdl", sdl.GetError())
 		return nil
@@ -52,7 +53,7 @@ func NewSdlContext(w, h int) *sdlCtx {
 		return nil
 	}
 
-	var ctx sdlCtx
+	var ctx Screen
 	if err := ctx.setSurface(w, h); err != nil {
 		log.Fatal(err)
 	}
@@ -86,23 +87,12 @@ func NewSdlContext(w, h int) *sdlCtx {
 	}
 	ctx.debugLineHeight = uint16(ctx.debugFont.LineSkip())
 
-	go func() {
-	EVENT_LOOP:
-		for {
-			err := ctx.handelEvent()
-			if err != nil {
-				fmt.Println(err)
-				break EVENT_LOOP
-			}
-		}
-		log.Println("sdl: exit event loop")
-		quitC <- true
-	}()
+	ctx.updateC = make(chan int)
 
 	return &ctx
 }
 
-func (c *sdlCtx) Release() {
+func (c *Screen) Release() {
 	if c.font != nil {
 		c.font.Close()
 	}
@@ -115,19 +105,18 @@ func (c *sdlCtx) Release() {
 	/* log.Printf("sdl Released...") */
 }
 
-func (c *sdlCtx) DisplayScript(script *subtitle.Script) {
+func (c *Screen) DisplayScript(script *subtitle.Script) {
 	c.displayScript(script, true, false)
 }
 
-func (c *sdlCtx) Clear() {
+func (c *Screen) Clear() {
 	log.Println("clear")
 	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
-	c.dirtySurface = true
+	c.updateC <- 1
 	c.currScript = nil
 }
 
-func (c *sdlCtx) setFont(path string, size int) error {
-
+func (c *Screen) setFont(path string, size int) error {
 	if c.font != nil {
 		c.font.Close()
 	}
@@ -151,7 +140,7 @@ func (c *sdlCtx) setFont(path string, size int) error {
 	return nil
 }
 
-func (c *sdlCtx) changeFontSize(by int) {
+func (c *Screen) changeFontSize(by int) {
 	if c.font == nil {
 		return
 	}
@@ -159,7 +148,7 @@ func (c *sdlCtx) changeFontSize(by int) {
 	c.displayScript(c.currScript, false, true)
 }
 
-func (c *sdlCtx) setSurface(w, h int) error {
+func (c *Screen) setSurface(w, h int) error {
 	log.Printf("setSurface to %dx%d", w, h)
 	c.surface = sdl.SetVideoMode(w, h, 32, sdl.RESIZABLE) /* sdl.FULLSCREEN */
 	if c.surface == nil {
@@ -174,94 +163,32 @@ func (c *sdlCtx) setSurface(w, h int) error {
 	return nil
 }
 
-func (c *sdlCtx) handelEvent() error {
-	// KeySym to time.Duration mapping
-	kmVias := map[uint32]time.Duration{
-		sdl.K_z:     -100 * time.Microsecond,
-		sdl.K_x:     +100 * time.Microsecond,
-		sdl.K_LEFT:  -1 * time.Second,
-		sdl.K_RIGHT: +1 * time.Second,
-		sdl.K_DOWN:  -10 * time.Second,
-		sdl.K_UP:    +10 * time.Second,
-	}
-
-	kmFontSize := map[uint32]int{
-		sdl.K_EQUALS:   +5, // +
-		sdl.K_MINUS:    -5,
-		sdl.K_KP_PLUS:  +5,
-		sdl.K_KP_MINUS: -5,
-	}
-
-	kmNavScript := map[uint32]int{
-		sdl.K_SPACE:  0,
-		sdl.K_COMMA:  -1, // <
-		sdl.K_PERIOD: +1, // >
-	}
-
+func graphicLoop(c *Screen) {
 	fpsTicker := time.NewTicker(time.Second / time.Duration(c.fps)) // 30fps
+	dirtyCnt := 0
 
+GRAPHIC_LOOP:
 	select {
+	case u := <-c.updateC:
+		dirtyCnt += u
 	case <-fpsTicker.C:
-		if c.dirtySurface {
+		if dirtyCnt > 0 {
 			c.surface.Flip()
-			c.dirtySurface = false
-		}
-
-	case event := <-sdl.Events:
-		/* log.Printf("%#v\n", event) */
-		switch e := event.(type) {
-		case sdl.QuitEvent:
-			return errors.New("sdl: received QuitEvent")
-
-		case sdl.ResizeEvent:
-			if err := c.setSurface(int(e.W), int(e.H)); err != nil {
-				log.Fatal(err)
-			}
-
-		case sdl.KeyboardEvent:
-			// Ignore release key
-			if e.State == 0 {
-				return nil
-			}
-
-			keysym := e.Keysym.Sym
-			if keysym == sdl.K_q {
-				return errors.New("sdl: received QuitEvent")
-			}
-
-			// tune timestamp
-			if v, ok := kmVias[keysym]; ok {
-				tsViasC <- v
-				break
-			}
-			// tune font size
-			if v, ok := kmFontSize[keysym]; ok {
-				c.changeFontSize(v)
-				break
-			}
-
-			// pause/resume
-			if v, ok := kmNavScript[keysym]; ok {
-				navC <- v
-				break
-			}
-			log.Printf("Sim:%08x, Mod:%04x, Unicode:%02x, %t\n",
-				e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode,
-				e.Keysym.Unicode)
+			dirtyCnt = 0
 		}
 	}
-	return nil
+	goto GRAPHIC_LOOP
 }
 
-func (c *sdlCtx) displayDebug(text string) {
+func (c *Screen) displayDebug(text string) {
 	c.surface.FillRect(&sdl.Rect{0, 0, c.w, c.debugLineHeight}, 0 /* BG_COLOR */)
 	glypse := ttf.RenderUTF8_Solid(c.debugFont, text, DEBUG_TEXT_COLOR)
 	c.surface.Blit(&sdl.Rect{0, 0, 0, 0}, glypse, nil)
-	c.dirtySurface = true
+	c.updateC <- 1
 	/* c.surface.Flip() */
 }
 
-func (c *sdlCtx) displayScript(script *subtitle.Script,
+func (c *Screen) displayScript(script *subtitle.Script,
 	andClear bool, forceUpdate bool) {
 	if script == nil {
 		return
@@ -325,10 +252,10 @@ func (c *sdlCtx) displayScript(script *subtitle.Script,
 			lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
 			c.surface.Blit(&lt, glypse, nil)
 			offsetY += c.lineHeight
+			c.updateC <- 1
 		}
 
 	}
-	c.dirtySurface = true
 
 	if andClear == false {
 		return
