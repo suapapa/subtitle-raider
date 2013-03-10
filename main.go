@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 	"time"
 )
 
@@ -32,7 +31,7 @@ func main() {
 	go graphicLoop(screen)
 
 	tkr := time.NewTicker(time.Millisecond * 100)
-	debugTkr := time.NewTicker(time.Second / 5)
+	debugTkr := time.NewTicker(time.Second / 10)
 	if opt.debugScrn == false {
 		debugTkr.Stop()
 	}
@@ -96,34 +95,25 @@ CHAN_LOOP:
 			if paused {
 				continue
 			}
+
 			tsCurr := time.Since(startTime)
 			tsCurr += tsVias
-
 			if tsCurr < 0 {
 				nextScript = &book[0]
 				continue
 			}
 
 			if nextScript == nil {
-				i := sort.Search(len(book), func(i int) bool {
-					return book[i].Start >= tsCurr
-				})
-
-				if i < len(book) {
-					nextScript = &book[i]
-				} else {
-					lastScript := book[len(book)-1]
-					if lastScript.End < tsCurr {
-						break CHAN_LOOP
-					}
-				}
+				nextScript = book.Find(tsCurr)
 			}
 
-			if nextScript != nil && nextScript.Start <= tsCurr {
-				screen.DisplayScript(nextScript)
-				tsClear = nextScript.End
-				currScriptIdx = nextScript.Idx - 1
-				nextScript = nil
+			if nextScript != nil {
+				if hs := nextScript.CheckHit(tsCurr); hs == subtitle.SCR_HIT {
+					screen.DisplayScript(nextScript)
+					tsClear = nextScript.End
+					currScriptIdx = nextScript.Idx - 1
+					nextScript = nil
+				}
 			}
 
 			if tsClear != 0 && tsClear <= tsCurr {

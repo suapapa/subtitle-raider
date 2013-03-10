@@ -173,6 +173,9 @@ GRAPHIC_LOOP:
 		dirtyCnt += u
 	case <-fpsTicker.C:
 		if dirtyCnt > 0 {
+			if dirtyCnt > 1 {
+				log.Println("Lost some frame?. dirtyCnt =", dirtyCnt)
+			}
 			c.surface.Flip()
 			dirtyCnt = 0
 		}
