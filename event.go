@@ -47,9 +47,8 @@ EVENT_LOOP:
 		c.updateC <- 1
 
 	case sdl.KeyboardEvent:
-		// Ignore release key
+		// Ignore key-up
 		if e.State == 0 {
-			quitC <- true
 			break
 		}
 

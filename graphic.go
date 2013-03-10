@@ -221,17 +221,21 @@ func (c *Screen) displayScript(script *subtitle.Script,
 			runeSubLineLen := len(runeSubLine)
 			i := sort.Search(runeSubLineLen, func(i int) bool {
 				w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
-				return w+40 >= int(c.w)
+				return w+20 >= int(c.w)
 			})
 			/* log.Printf("runeSubLine=%s, i=%d\n", string(runeSubLine), i) */
 
-			// TODO: fix here to re-check cut point
-			if i != runeSubLineLen && i > 1 {
-				i -= 1
-			}
 			if i > runeSubLineLen {
 				i = runeSubLineLen
 			}
+
+			w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
+			for w > int(c.w) {
+				i -= 1
+
+				w, _, _ = c.font.SizeUTF8(string(runeSubLine[:i]))
+			}
+
 			/* log.Println("returned i=", i) */
 
 			subline := string(runeLine[runeLineStart : runeLineStart+i])
