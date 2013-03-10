@@ -5,6 +5,7 @@
 package subtitle
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"time"
@@ -56,6 +57,10 @@ func (s *Script) CheckHit(ts time.Duration) HitStatus {
 		return SCR_LATE
 	}
 	return SCR_INVALID
+}
+
+func (s *Script) String() string {
+	return fmt.Sprintf("%d:%s(%s-%s)", s.Idx, s.Text, s.Start, s.End)
 }
 
 // HitStatus is type for timestamp check
