@@ -36,21 +36,20 @@ func main() {
 		debugTkr.Stop()
 	}
 
-	startTime := time.Now()
-
-	var tsVias time.Duration
-	var tsClear time.Duration
-	var paused bool
-	var currScriptIdx int
-
-	var nextScript *subtitle.Script
 	book := subtitle.ReadSrtFile(flags[0])
-
 	if opt.startIdx > 0 && opt.startIdx < len(book) {
 		go func() {
 			navC <- opt.startIdx
 		}()
 	}
+
+	var tsVias time.Duration
+	var tsClear time.Duration
+	var paused bool
+	var nextScript *subtitle.Script
+
+	startTime := time.Now()
+	currScriptIdx := -1
 
 CHAN_LOOP:
 	select {
@@ -80,10 +79,9 @@ CHAN_LOOP:
 		tsVias += v
 
 	case <-debugTkr.C:
-		tsCurr := time.Since(startTime)
-
+		tsCurr := time.Since(startTime) + tsVias
 		debugStr := fmt.Sprintf("%s ClearTs=%s Ts=%s",
-			nextScript, tsClear, tsCurr+tsVias)
+			nextScript, tsClear, tsCurr)
 		screen.displayDebug(debugStr)
 
 	case <-tkr.C:
@@ -91,8 +89,7 @@ CHAN_LOOP:
 			break
 		}
 
-		tsCurr := time.Since(startTime)
-		tsCurr += tsVias
+		tsCurr := time.Since(startTime) + tsVias
 		if tsCurr < 0 {
 			nextScript = &book[0]
 			break
