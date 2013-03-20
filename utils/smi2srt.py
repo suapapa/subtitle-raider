@@ -38,6 +38,7 @@ __version_info__ = (1, 0, 0)
 __license__ = "GCQVista's NDA"
 
 ###################################################################################################
+import glob
 import os
 import sys
 import re
@@ -45,11 +46,6 @@ import chardet #@UnresolvedImport
 
 ###################################################################################################
 def usage(msg=None, exit_code=1):
-	print_msg = """
-usage %s smifile.smi [...]
-	convert smi into srt subtitle file with same filename.
-	By MoonChang Chae <mcchae@gmail.com>
-""" % os.path.basename(sys.argv[0])
 	if msg:
 		print_msg += '%s\n' % msg
 	print print_msg
@@ -109,25 +105,25 @@ class smiItem(object):
 		return s
 
 ###################################################################################################
-def convertSMI(smi_file):
-	if not os.path.exists(smi_file):
-		sys.stderr.write('Cannot find smi file <%s>\n' % smi_file)
-		return False
+def convertSMI(smi_file, enc):
 	rndx = smi_file.rfind('.')
 	srt_file = '%s.srt' % smi_file[0:rndx]
 
 	ifp = open(smi_file)
 	smi_sgml = ifp.read()#.upper()
 	ifp.close()
-	chdt = chardet.detect(smi_sgml)
-	if chdt['encoding'] != 'UTF-8':
-		smi_sgml = unicode(smi_sgml, chdt['encoding'].lower()).encode('utf-8')
+        if not enc:
+                chdt = chardet.detect(smi_sgml)
+                enc = chdt['encoding']
+                print 'Encoding %s detected for %s'%(enc, smi_file)
+
+        if enc != 'UTF-8':
+                smi_sgml = unicode(smi_sgml, enc.lower()).encode('utf-8')
 
 	# skip to first starting tag (skip first 0xff 0xfe ...)
 	try:
 		fndx = smi_sgml.upper().find('<SYNC')
 	except Exception, e:
-		print chdt
 		raise e
 	if fndx < 0:
 		return False
@@ -175,11 +171,9 @@ def convertSMI(smi_file):
 	return True
 
 ###################################################################################################
-def doConvert():
-	if len(sys.argv) <= 1:
-		usage()
-	for smi_file in sys.argv[1:]:
-		if convertSMI(smi_file):
+def doConvert(smis, enc):
+	for smi_file in smis:
+		if convertSMI(smi_file, enc):
 			print "Converting <%s> OK!" % smi_file
 		else:
 			print "Converting <%s> Failture!" % smi_file
@@ -187,4 +181,21 @@ def doConvert():
 	
 ###################################################################################################
 if __name__ == '__main__':
-	doConvert()
+	from optparse import OptionParser
+	usage_text = """%prog [-e encoding] smifile.smi [...]
+	convert smi into srt subtitle file with same filename."""
+	opsr = OptionParser(usage_text)
+	opsr.add_option('-e', '--encoding', type='string', default='',
+			help='encoding of input file. autodetect by default')
+	(opts, args) = opsr.parse_args()
+
+	smis = []
+	for a in args:
+		smis = glob.glob(a)
+	smis = filter(lambda(f): os.path.exists(f), smis)
+	if not smis:
+		print "Error: no input!"
+		opsr.print_help()
+		sys.exit(1)
+
+	doConvert(smis, opts.encoding)
