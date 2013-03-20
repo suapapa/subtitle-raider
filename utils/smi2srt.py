@@ -112,13 +112,13 @@ def convertSMI(smi_file, enc):
 	ifp = open(smi_file)
 	smi_sgml = ifp.read()#.upper()
 	ifp.close()
-        if not enc:
-                chdt = chardet.detect(smi_sgml)
-                enc = chdt['encoding']
-                print 'Encoding %s detected for %s'%(enc, smi_file)
+	if not enc:
+		chdt = chardet.detect(smi_sgml)
+		enc = chdt['encoding']
+		print 'Encoding %s detected for %s'%(enc, smi_file)
 
-        if enc != 'UTF-8':
-                smi_sgml = unicode(smi_sgml, enc.lower()).encode('utf-8')
+	if enc != 'UTF-8':
+		smi_sgml = unicode(smi_sgml, enc.lower()).encode('utf-8')
 
 	# skip to first starting tag (skip first 0xff 0xfe ...)
 	try:
@@ -199,3 +199,5 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	doConvert(smis, opts.encoding)
+
+/* vim: set noet: */
