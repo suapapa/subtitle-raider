@@ -39,7 +39,8 @@ func ReadSrt(data []byte) Book {
 			/* log.Println("STATE_IDX") */
 			_, err := fmt.Sscanln(line, &script.Idx)
 			if err != nil {
-				log.Fatalln("failed to parse index!", err)
+				log.Fatalf("failed to parse index! in \"%s\" : %s",
+				line,  err)
 			}
 			state = STATE_TS
 

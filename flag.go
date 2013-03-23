@@ -30,6 +30,7 @@ type Options struct {
 	fontPath     string
 	startIdx     int
 	scrnW, scrnH int
+	fullscreen   bool
 	fps          int
 	alignCenter  bool
 	debugScrn    bool
@@ -46,6 +47,7 @@ func setupFlags(opts *Options) *flag.FlagSet {
 	fs.IntVar(&opts.startIdx, "s", 0, "set first scipt idx")
 	fs.IntVar(&opts.scrnW, "w", 1024, "screen width")
 	fs.IntVar(&opts.scrnH, "h", 480, "screen height")
+	fs.BoolVar(&opts.fullscreen, "f", false, "fullscreen")
 	fs.BoolVar(&opts.alignCenter, "c", false, "center align")
 	fs.BoolVar(&opts.debugScrn, "d", false, "show debug message on screen")
 

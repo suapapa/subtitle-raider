@@ -41,6 +41,9 @@ EVENT_LOOP:
 		os.Exit(0)
 
 	case sdl.ResizeEvent:
+		if opt.fullscreen {
+			break
+		}
 		if err := c.setSurface(int(e.W), int(e.H)); err != nil {
 			log.Fatal(err)
 		}

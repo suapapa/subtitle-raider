@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 '''
 @package smi2srt
-@brief this module is for convert .smi subtitle file into .srt subtitle 
+@brief this module is for convert .smi subtitle file into .srt subtitle
 	(Request by Alfred Chae)
 
 Started : 2011/08/08
@@ -129,7 +129,7 @@ def convertSMI(smi_file, enc):
 		return False
 	smi_sgml = smi_sgml[fndx:]
 	lines = smi_sgml.split('\n')
-	
+
 	srt_list = []
 	sync_cont = ''
 	si = None
@@ -155,7 +155,7 @@ def convertSMI(smi_file, enc):
 			si.start_ms = long(m.group(1))
 		else:
 			sync_cont += line
-			
+
 	ofp = open(srt_file, 'w')
 	ndx = 1
 	for si in srt_list:
@@ -177,8 +177,8 @@ def doConvert(smis, enc):
 			print "Converting <%s> OK!" % smi_file
 		else:
 			print "Converting <%s> Failture!" % smi_file
-			
-	
+
+
 ###################################################################################################
 if __name__ == '__main__':
 	from optparse import OptionParser
@@ -200,4 +200,4 @@ if __name__ == '__main__':
 
 	doConvert(smis, opts.encoding)
 
-/* vim: set noet: */
+# vim: set noet:

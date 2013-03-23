@@ -150,7 +150,11 @@ func (c *Screen) changeFontSize(by int) {
 
 func (c *Screen) setSurface(w, h int) error {
 	log.Printf("setSurface to %dx%d", w, h)
-	c.surface = sdl.SetVideoMode(w, h, 32, sdl.RESIZABLE) /* sdl.FULLSCREEN */
+	if opt.fullscreen {
+		c.surface = sdl.SetVideoMode(w, h, 32, sdl.FULLSCREEN)
+	} else {
+		c.surface = sdl.SetVideoMode(w, h, 32, sdl.RESIZABLE)
+	}
 	if c.surface == nil {
 		errMsg := fmt.Sprintf("sdl: failed to set video to %dx%d: %s",
 			w, h, sdl.GetError())
@@ -232,7 +236,6 @@ func (c *Screen) displayScript(script *subtitle.Script,
 			w, _, _ := c.font.SizeUTF8(string(runeSubLine[:i]))
 			for w > int(c.w) {
 				i -= 1
-
 				w, _, _ = c.font.SizeUTF8(string(runeSubLine[:i]))
 			}
 
