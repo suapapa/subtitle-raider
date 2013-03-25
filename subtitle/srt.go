@@ -90,5 +90,11 @@ func ReadSrtFile(filename string) Book {
 	if err != nil {
 		log.Fatalln("faile to read file, ", filename)
 	}
+
+	// skip UTF-8 BOM if exists
+	if bytes.Equal(data[:3], []byte{0xEF, 0xBB, 0xBF}) {
+		data = data[3:]
+	}
+
 	return ReadSrt(data)
 }
