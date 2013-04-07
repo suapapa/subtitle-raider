@@ -105,10 +105,6 @@ func (c *Screen) Release() {
 	/* log.Printf("sdl Released...") */
 }
 
-func (c *Screen) DisplayScript(script *subtitle.Script) {
-	c.displayScript(script, false)
-}
-
 func (c *Screen) Clear() {
 	log.Println("clear")
 	c.surface.FillRect(&sdl.Rect{0, int16(c.debugLineHeight), c.w, c.h}, 0 /* BG_COLOR */)
@@ -145,7 +141,7 @@ func (c *Screen) changeFontSize(by int) {
 		return
 	}
 	c.setFont(c.fontPath, c.fontSize+by)
-	c.displayScript(c.currScript, true)
+	c.DisplayScript(c.currScript)
 }
 
 func (c *Screen) setSurface(w, h int) error {
@@ -162,7 +158,7 @@ func (c *Screen) setSurface(w, h int) error {
 	}
 
 	c.w, c.h = uint16(w), uint16(h)
-	c.displayScript(c.currScript, true)
+	c.DisplayScript(c.currScript)
 
 	return nil
 }
@@ -195,13 +191,11 @@ func (c *Screen) displayDebug(text string) {
 	/* c.surface.Flip() */
 }
 
-func (c *Screen) displayScript(script *subtitle.Script, forceUpdate bool) {
+func (c *Screen) DisplayScript(script *subtitle.Script) {
 	if script == nil {
 		return
 	}
-	if forceUpdate == false && c.currScript == script {
-		return
-	}
+
 	c.currScript = script
 
 	log.Printf("display %d.%s", script.Idx, script.TextWithoutMarkup())
@@ -237,8 +231,6 @@ func (c *Screen) displayScript(script *subtitle.Script, forceUpdate bool) {
 				i -= 1
 				w, _, _ = c.font.SizeUTF8(string(runeSubLine[:i]))
 			}
-
-			/* log.Println("returned i=", i) */
 
 			subline := string(runeLine[runeLineStart : runeLineStart+i])
 			subline = strings.TrimSpace(subline)
