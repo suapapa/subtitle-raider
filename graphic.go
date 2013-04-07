@@ -106,7 +106,7 @@ func (c *Screen) Release() {
 }
 
 func (c *Screen) DisplayScript(script *subtitle.Script) {
-	c.displayScript(script, true, false)
+	c.displayScript(script, false)
 }
 
 func (c *Screen) Clear() {
@@ -145,7 +145,7 @@ func (c *Screen) changeFontSize(by int) {
 		return
 	}
 	c.setFont(c.fontPath, c.fontSize+by)
-	c.displayScript(c.currScript, false, true)
+	c.displayScript(c.currScript, true)
 }
 
 func (c *Screen) setSurface(w, h int) error {
@@ -162,7 +162,7 @@ func (c *Screen) setSurface(w, h int) error {
 	}
 
 	c.w, c.h = uint16(w), uint16(h)
-	c.displayScript(c.currScript, false, true)
+	c.displayScript(c.currScript, true)
 
 	return nil
 }
@@ -195,8 +195,7 @@ func (c *Screen) displayDebug(text string) {
 	/* c.surface.Flip() */
 }
 
-func (c *Screen) displayScript(script *subtitle.Script,
-	andClear bool, forceUpdate bool) {
+func (c *Screen) displayScript(script *subtitle.Script, forceUpdate bool) {
 	if script == nil {
 		return
 	}
@@ -262,12 +261,7 @@ func (c *Screen) displayScript(script *subtitle.Script,
 			lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
 			c.surface.Blit(&lt, glypse, nil)
 			offsetY += c.lineHeight
-			c.updateC <- 1
 		}
-
 	}
-
-	if andClear == false {
-		return
-	}
+	c.updateC <- 1
 }
