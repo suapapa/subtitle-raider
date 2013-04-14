@@ -240,6 +240,10 @@ func (c *Screen) DisplayScript(script *subtitle.Script) {
 				runeLineStart = runeLineLen
 			}
 
+			if subline == "" {
+				continue
+			}
+
 			offsetX := 10
 			if opt.alignCenter {
 				w, _, err := c.font.SizeUTF8(subline)
@@ -250,6 +254,9 @@ func (c *Screen) DisplayScript(script *subtitle.Script) {
 			}
 
 			glypse := ttf.RenderUTF8_Blended(c.font, subline, TEXT_COLOR)
+			if glypse == nil {
+				continue
+			}
 			lt := sdl.Rect{int16(offsetX), int16(offsetY), 0, 0}
 			c.surface.Blit(&lt, glypse, nil)
 			offsetY += c.lineHeight
