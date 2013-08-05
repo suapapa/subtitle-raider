@@ -5,8 +5,8 @@
 package main
 
 import (
-	"./subtitle"
 	"fmt"
+	"github.com/suapapa/subtitle-raider/subtitle"
 	"log"
 	"os"
 	"time"
