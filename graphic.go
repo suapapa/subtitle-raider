@@ -7,14 +7,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
-	"github.com/0xe2-0x9a-0x9b/Go-SDL/ttf"
-	"github.com/suapapa/subtitle-raider/subtitle"
 	"log"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"./subtitle"
+	"github.com/banthar/Go-SDL/sdl"
+	"github.com/banthar/Go-SDL/ttf"
 )
 
 var (

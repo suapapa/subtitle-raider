@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"log"
 	"os"
 	"time"
+
+	"github.com/banthar/Go-SDL/sdl"
 )
 
 var (
@@ -33,14 +34,13 @@ var (
 )
 
 func eventLoop(c *Screen) {
-EVENT_LOOP:
-	event := <-sdl.Events
+EVENTLOOP:
 	/* log.Printf("%#v\n", event) */
-	switch e := event.(type) {
-	case sdl.QuitEvent:
+	switch e := sdl.PollEvent().(type) {
+	case *sdl.QuitEvent:
 		os.Exit(0)
 
-	case sdl.ResizeEvent:
+	case *sdl.ResizeEvent:
 		if opt.fullscreen {
 			break
 		}
@@ -49,7 +49,7 @@ EVENT_LOOP:
 		}
 		c.updateC <- 1
 
-	case sdl.KeyboardEvent:
+	case *sdl.KeyboardEvent:
 		// Ignore key-up
 		if e.State == 0 {
 			break
@@ -81,5 +81,6 @@ EVENT_LOOP:
 			e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode,
 			e.Keysym.Unicode)
 	} // end of switch
-	goto EVENT_LOOP
+	time.Sleep(time.Millisecond)
+	goto EVENTLOOP
 }

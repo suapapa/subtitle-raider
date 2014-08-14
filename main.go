@@ -6,10 +6,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/suapapa/subtitle-raider/subtitle"
 	"log"
 	"os"
 	"time"
+
+	//"github.com/suapapa/subtitle-raider/subtitle"
+	"./subtitle"
 )
 
 var (
