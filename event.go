@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/banthar/Go-SDL/sdl"
@@ -81,6 +82,7 @@ EVENTLOOP:
 			e.Keysym.Sym, e.Keysym.Mod, e.Keysym.Unicode,
 			e.Keysym.Unicode)
 	} // end of switch
-	time.Sleep(time.Millisecond)
+
+	runtime.Gosched()
 	goto EVENTLOOP
 }
