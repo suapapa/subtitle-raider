@@ -10,8 +10,7 @@ import (
 	"os"
 	"time"
 
-	//"github.com/suapapa/subtitle-raider/subtitle"
-	"./subtitle"
+	"github.com/suapapa/go_subtitle"
 )
 
 var (

@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"./subtitle"
 	"github.com/banthar/Go-SDL/sdl"
 	"github.com/banthar/Go-SDL/ttf"
+	"github.com/suapapa/go_subtitle"
 )
 
 var (
