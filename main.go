@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/suapapa/go_subtitle"
@@ -37,15 +38,27 @@ func main() {
 		debugTkr.Stop()
 	}
 
-	f, err := os.Open(flags[0])
+	scriptFileName := flags[0]
+	f, err := os.Open(scriptFileName)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	book, err := subtitle.ReadSrt(f)
-	if err != nil {
-		panic(err)
+
+	var book subtitle.Book
+	switch {
+	case strings.HasSuffix(scriptFileName, ".srt"):
+		book, err = subtitle.ReadSrt(f)
+		if err != nil {
+			panic(err)
+		}
+	case strings.HasSuffix(scriptFileName, ".smi"):
+		book, err = subtitle.ReadSmi(f)
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	if opt.startIdx > 0 && opt.startIdx < len(book) {
 		go func() {
 			navC <- opt.startIdx
