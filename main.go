@@ -37,7 +37,15 @@ func main() {
 		debugTkr.Stop()
 	}
 
-	book := subtitle.ReadSrtFile(flags[0])
+	f, err := os.Open(flags[0])
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	book, err := subtitle.ReadSrt(f)
+	if err != nil {
+		panic(err)
+	}
 	if opt.startIdx > 0 && opt.startIdx < len(book) {
 		go func() {
 			navC <- opt.startIdx
